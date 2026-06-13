@@ -81,3 +81,4 @@ A full-stack application for managing code snippets with AI-powered generation, 
 ```bash
 git clone https://github.com/your-username/code-snippet-manager.git
 cd code-snippet-manager
+npm install
