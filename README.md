@@ -17,32 +17,62 @@ A full-stack application for managing code snippets with AI-powered generation, 
 ## Tech Stack
 
 ### Frontend
-- React 18 with TypeScript
-- Tailwind CSS for styling
-- Axios for API calls
-- React Router for navigation
-- React Hot Toast for notifications
-- FontAwesome for icons
+
+| Technology      | Version | Purpose                   |
+|-----------------|---------|---------------------------|
+| React           | 18.x    | UI library                |
+| TypeScript      | 5.x     | Type safety               |
+| Tailwind CSS    | 3.x     | Utility-first styling     |
+| Axios           | 1.6.x   | HTTP client for API calls |
+| React Router    | 6.x     | Navigation and routing    |
+| React Hot Toast | 2.x     | Toast notifications       |
+| FontAwesome     | 6.x     | Icon library              |
+| Vite            | 5.x     | Build tool and dev server |
 
 ### Backend
-- Node.js with Express
-- TypeScript
-- PostgreSQL with Prisma ORM
-- JWT for authentication
-- Ollama with CodeLlama 7B for AI features
+
+| Technology     | Version | Purpose                     |
+|----------------|---------|-----------------------------|
+| Node.js        | 18+     | JavaScript runtime          |
+| Express        | 4.x     | Web framework               |
+| TypeScript     | 5.x     | Type safety                 |
+| Prisma         | 5.x     | ORM for database operations |
+| PostgreSQL     | 14+     | Primary database            |
+| JSON Web Token | 9.x     | Token-based authentication  |
+| Axios          | 1.6.x   | HTTP client for Ollama API  |
+| Bcrypt         | 5.x     | Password hashing            |
 
 ### Authentication Service
-- Standalone auth service
-- JWT token management
-- Password reset functionality
-- OAuth support (Google, GitHub)
+
+| Technology     | Version | Purpose                     |
+|----------------|---------|-----------------------------|
+| Node.js        | 18+     | JavaScript runtime          |
+| Express        | 4.x     | Web framework               |
+| TypeScript     | 5.x     | Type safety                 |
+| Prisma         | 5.x     | ORM for database operations |
+| PostgreSQL     | 14+     | User database               |
+| JSON Web Token | 9.x     | Access and refresh tokens   |
+| Passport       | 0.7.x   | OAuth strategies            |
+| Bcrypt         | 5.x     | Password hashing            |
+| Nodemailer     | 6.x     | Email for password reset    |
+
+### AI Service
+
+| Technology | Version | Purpose                |
+|------------|---------|------------------------|
+| Ollama     | Latest  | Local LLM runner       |
+| CodeLlama  | 7B      | Code generation model  |
+| Axios      | 1.6.x   | HTTP client for Ollama |
 
 ## Prerequisites
 
-- Node.js (v18 or higher)
-- PostgreSQL (v14 or higher)
-- Ollama with CodeLlama 7B model
-- npm or yarn
+| Requirement | Version         | Notes              |
+|-------------|-----------------|--------------------|
+| Node.js     | 18 or higher    | JavaScript runtime |
+| PostgreSQL  | 14 or higher    | Database           |
+| Ollama      | Latest          | Local LLM runner   |
+| npm         | 9 or higher     | Package manager    |
+| Git         | Latest          | Version control    |
 
 ## Installation
 
