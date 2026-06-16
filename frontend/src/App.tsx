@@ -12,7 +12,7 @@ import { SnippetDetail } from './components/snippets/SnippetDetail';
 import { LoadingSpinner } from './components/ui/LoadingSpinner';
 import { ForgotPasswordPage }  from './components/auth/ForgotPasswordPage';
 import { ResetPasswordPage }  from './components/auth/ResetPasswordPage';
-
+import { AIChatPage } from './components/ai/ai-chat-page';
 const PrivateRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { isAuthenticated, loading } = useAuth();
   if (loading) return <LoadingSpinner size="lg" className="py-12" />;
@@ -33,6 +33,7 @@ const AppContent: React.FC = () => {
       <Route path="/forgot-password" element={<PublicRoute><ForgotPasswordPage /></PublicRoute>} />
       <Route path="/reset-password" element={<PublicRoute><ResetPasswordPage /></PublicRoute>} />
       <Route path="/profile" element={<PrivateRoute><ProfilePage /></PrivateRoute>} />
+      <Route path="/ai-chat" element={<PrivateRoute><Layout><AIChatPage /></Layout></PrivateRoute>} />
       <Route path="/snippets" element={<PrivateRoute><Layout><SnippetList /></Layout></PrivateRoute>} />
       <Route path="/snippets/new" element={<PrivateRoute><Layout><SnippetForm onClose={() => window.history.back()} /></Layout></PrivateRoute>} />
       <Route path="/snippets/:id" element={<PrivateRoute><Layout><SnippetDetail /></Layout></PrivateRoute>} />

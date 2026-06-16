@@ -6,7 +6,8 @@ import {
   faUser, 
   faSignOutAlt,
   faChevronDown,
-  faPlus
+  faPlus,
+  faRobot
 } from '@fortawesome/free-solid-svg-icons';
 import { useAuth } from '../../hooks/useAuth';
 import { Button } from '../ui/Button';
@@ -71,9 +72,17 @@ export const Header: React.FC = () => {
               <>
                 <Button
                     size="sm"
+                    icon={faRobot}
+                    onClick={() => navigate('/ai-chat')}
+                    className="hidden md:inline-flex bg-black hover:bg-gray-800 text-white"
+                  >
+                    AI Chat
+                  </Button>
+                <Button
+                    size="sm"
                     icon={faPlus}
                     onClick={() => navigate('/snippets/new')}
-                    className="hidden md:inline-flex !bg-black !hover:bg-gray-800 !text-white"
+                    className="hidden md:inline-flex bg-black hover:bg-gray-800 text-white"
                   >
                     New
                 </Button>
