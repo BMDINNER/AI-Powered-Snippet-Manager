@@ -25,7 +25,7 @@ interface Message {
 
 export const AIChatPage: React.FC = () => {
   const navigate = useNavigate();
-  const { chat, loading } = useAI();
+  const { chat } = useAI();
   const [messages, setMessages] = useState<Message[]>([
     {
       id: '1',
