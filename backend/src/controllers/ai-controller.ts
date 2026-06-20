@@ -1,7 +1,7 @@
 import { Response } from 'express';
-import { AuthRequest } from '../middleware/auth';
-import { aiService } from '../services/ai-service';
-import { ollamaService } from '../services/ollama-service';
+import { AuthRequest } from '../middleware/auth.js';
+import { aiService } from '../services/ai-service.js';
+import { ollamaService } from '../services/ollama-service.js';
 
 export const generateSnippet = async (req: AuthRequest, res: Response) => {
   try {

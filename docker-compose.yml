@@ -1,0 +1,150 @@
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: snippet_postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: snippet_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - snippet_network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  postgres_auth:
+    image: postgres:15-alpine
+    container_name: snippet_postgres_auth
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: authdb
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_auth_data:/var/lib/postgresql/data
+    networks:
+      - snippet_network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  ollama:
+    image: ollama/ollama:0.5.13
+    container_name: snippet_ollama
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama_data:/root/.ollama
+    environment:
+      - OLLAMA_HOST=0.0.0.0
+      - OLLAMA_KEEP_ALIVE=24h
+    networks:
+      - snippet_network
+    entrypoint: ["/bin/sh", "-c"]
+    command: >
+      "
+      ollama serve &
+      sleep 5 &&
+      echo 'Checking for codellama:7b model...' &&
+      if ! ollama list | grep -q 'codellama:7b'; then
+        echo 'Model not found. Pulling codellama:7b...' &&
+        ollama pull codellama:7b &&
+        echo 'Model pull complete!'
+      else
+        echo 'Model already exists. Starting Ollama...'
+      fi &&
+      wait
+      "
+    healthcheck:
+      test: ["CMD", "ollama", "list"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  auth-service:
+    build:
+      context: ../Multiple-Platform-Authentication-Service-Project-main
+      dockerfile: Dockerfile
+    container_name: auth_service
+    ports:
+      - "3001:3001"
+    environment:
+      - NODE_ENV=production
+      - PORT=3001
+      - DATABASE_URL=postgresql://postgres:postgres@postgres_auth:5432/authdb
+      - JWT_SECRET=${JWT_SECRET}
+      - JWT_REFRESH_SECRET=${JWT_REFRESH_SECRET}
+      - CLIENT_URL=http://localhost:3000
+    depends_on:
+      postgres_auth:
+        condition: service_healthy
+    networks:
+      - snippet_network
+    restart: unless-stopped
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: snippet_backend
+    ports:
+      - "3002:3002"
+    environment:
+      - NODE_ENV=production
+      - PORT=3002
+      - DATABASE_URL=postgresql://postgres:postgres@postgres:5432/snippet_db
+      - JWT_SECRET=${JWT_SECRET}
+      - JWT_REFRESH_SECRET=${JWT_REFRESH_SECRET}
+      - AUTH_SERVICE_URL=http://auth-service:3001
+      - PROJECT_ID=${PROJECT_ID}
+      - API_KEY=${API_KEY}
+      - OLLAMA_BASE_URL=http://ollama:11434
+      - OLLAMA_MODEL=codellama:7b
+      - CORS_ORIGIN=http://localhost:3000
+    depends_on:
+      postgres:
+        condition: service_healthy
+      ollama:
+        condition: service_healthy
+      auth-service:
+        condition: service_started
+    networks:
+      - snippet_network
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: snippet_frontend
+    ports:
+      - "3000:3000"
+    environment:
+      - VITE_API_URL=http://localhost:3002
+      - VITE_AUTH_URL=http://localhost:3001
+      - VITE_API_KEY=${API_KEY}
+      - VITE_PROJECT_ID=${PROJECT_ID}
+    depends_on:
+      - backend
+      - auth-service
+    networks:
+      - snippet_network
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+  postgres_auth_data:
+  ollama_data:
+
+networks:
+  snippet_network:
+    driver: bridge
