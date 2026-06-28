@@ -6,7 +6,7 @@ const authUrl = import.meta.env.VITE_AUTH_URL || 'http://localhost:3001';
 const api: AxiosInstance = axios.create({
   baseURL: `${apiUrl}/api`,
   headers: { 'Content-Type': 'application/json' },
-  timeout: 120000
+  timeout: 300000
 });
 
 let isRefreshing = false;

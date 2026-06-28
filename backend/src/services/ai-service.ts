@@ -63,8 +63,6 @@ Rules:
         throw new Error('AI returned empty code');
       }
 
-      const explanation = await ollamaService.explainCode(code, language);
-
       return {
         title: title,
         description: prompt,
@@ -72,7 +70,7 @@ Rules:
         language: language,
         tags: tags,
         aiGenerated: true,
-        aiExplanation: explanation,
+        aiExplanation: null,
         userId: userId,
       };
     } catch (error: any) {

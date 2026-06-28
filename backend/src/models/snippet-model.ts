@@ -21,7 +21,7 @@ export interface CreateSnippetInput {
   tags: string[];
   category?: string;
   aiGenerated?: boolean;
-  aiExplanation?: string;
+  aiExplanation?: string | null;
   userId: string;
 }
 
