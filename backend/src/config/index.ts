@@ -14,10 +14,6 @@ for (const envVar of requiredEnvVars) {
 export const config = {
   port: parseInt(process.env.PORT || '3002'),
   nodeEnv: process.env.NODE_ENV || 'development',
-  jwtSecret: process.env.JWT_SECRET as string,
-  jwtRefreshSecret: process.env.JWT_REFRESH_SECRET as string,
-  jwtExpiresIn: '15m',
-  jwtRefreshExpiresIn: '7d',
   clientUrl: process.env.CLIENT_URL || 'http://localhost:3000',
   databaseUrl: process.env.DATABASE_URL as string,
   authServiceUrl: process.env.AUTH_SERVICE_URL || 'http://localhost:3001',

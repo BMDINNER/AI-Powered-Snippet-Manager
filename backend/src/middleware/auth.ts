@@ -1,13 +1,12 @@
 import { Request, Response, NextFunction } from 'express';
-import jwt from 'jsonwebtoken';
-import { config } from '../config';
 import axios from 'axios';
+import { config } from '../config';
 
 export interface AuthRequest extends Request {
   user?: {
     userId: string;
     email: string;
-    provider?: string;
+    projectId?: string;
   };
 }
 
@@ -31,17 +30,25 @@ export const authenticate = async (req: Request, res: Response, next: NextFuncti
   }
 
   try {
-    const response = await axios.get(`${config.authServiceUrl}/auth/verify`, {
-      headers: { Authorization: `Bearer ${token}` }
-    });
+    const response = await axios.post(
+      `${config.authServiceUrl}/auth/token/verify`,
+      null,
+      {
+        headers: { Authorization: `Bearer ${token}` }
+      }
+    );
 
+    const { user } = response.data;
+    
     (req as AuthRequest).user = {
-      userId: response.data.id,
-      email: response.data.email
+      userId: user.userId,
+      email: user.email,
+      projectId: user.projectId
     };
     
     return next();
   } catch (err) {
+    console.error('Token verification failed:', err);
     return res.status(401).json({ message: 'Invalid or expired token' });
   }
 };
@@ -66,15 +73,23 @@ export const optionalAuth = async (req: Request, res: Response, next: NextFuncti
   }
 
   try {
-    const response = await axios.get(`${config.authServiceUrl}/auth/verify`, {
-      headers: { Authorization: `Bearer ${token}` }
-    });
+    const response = await axios.post(
+      `${config.authServiceUrl}/auth/token/verify`,
+      null,
+      {
+        headers: { Authorization: `Bearer ${token}` }
+      }
+    );
 
+    const { user } = response.data;
+    
     (req as AuthRequest).user = {
-      userId: response.data.id,
-      email: response.data.email
+      userId: user.userId,
+      email: user.email,
+      projectId: user.projectId
     };
   } catch (err) {
+    // Ignore error, user stays undefined, maybe guest
   } finally {
     return next();
   }
