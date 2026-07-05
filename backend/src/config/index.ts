@@ -20,5 +20,5 @@ export const config = {
   projectId: process.env.PROJECT_ID || '',
   apiKey: process.env.API_KEY || '',
   ollamaBaseUrl: process.env.OLLAMA_BASE_URL || 'http://localhost:11434',
-  ollamaModel: process.env.OLLAMA_MODEL || 'codellama:7b'
+  ollamaModel: process.env.OLLAMA_MODEL || 'tinyllama'
 };

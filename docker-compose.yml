@@ -1,5 +1,5 @@
 services:
-  postgres:
+  postgres_snippet:
     image: postgres:15-alpine
     container_name: snippet_postgres
     environment:
@@ -9,28 +9,9 @@ services:
     ports:
       - "5432:5432"
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - postgres_snippet_data:/var/lib/postgresql/data
     networks:
-      - snippet_network
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-
-  postgres_auth:
-    image: postgres:15-alpine
-    container_name: snippet_postgres_auth
-    environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: authdb
-    ports:
-      - "5433:5432"
-    volumes:
-      - postgres_auth_data:/var/lib/postgresql/data
-    networks:
-      - snippet_network
+      - platform_network
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres"]
       interval: 10s
@@ -48,20 +29,20 @@ services:
       - OLLAMA_HOST=0.0.0.0
       - OLLAMA_KEEP_ALIVE=24h
     networks:
-      - snippet_network
+      - platform_network
     entrypoint: ["/bin/sh", "-c"]
     command: >
       "
       ollama serve &
-      sleep 5 &&
-      echo 'Checking for codellama:7b model...' &&
-      if ! ollama list | grep -q 'codellama:7b'; then
-        echo 'Model not found. Pulling codellama:7b...' &&
-        ollama pull codellama:7b &&
-        echo 'Model pull complete!'
+      sleep 10 &&
+      if ! ollama list | grep -q 'tinyllama'; then
+        echo 'Downloading tinyllama model (~1.1GB)...' &&
+        ollama pull tinyllama &&
+        echo 'Model download complete!'
       else
-        echo 'Model already exists. Starting Ollama...'
+        echo 'tinyllama model already exists, skipping download.'
       fi &&
+      echo 'Ollama is ready!' &&
       wait
       "
     healthcheck:
@@ -69,27 +50,6 @@ services:
       interval: 30s
       timeout: 10s
       retries: 5
-
-  auth-service:
-    build:
-      context: ../Multiple-Platform-Authentication-Service-Project-main
-      dockerfile: Dockerfile
-    container_name: auth_service
-    ports:
-      - "3001:3001"
-    environment:
-      - NODE_ENV=production
-      - PORT=3001
-      - DATABASE_URL=postgresql://postgres:postgres@postgres_auth:5432/authdb
-      - JWT_SECRET=${JWT_SECRET}
-      - JWT_REFRESH_SECRET=${JWT_REFRESH_SECRET}
-      - CLIENT_URL=http://localhost:3000
-    depends_on:
-      postgres_auth:
-        condition: service_healthy
-    networks:
-      - snippet_network
-    restart: unless-stopped
 
   backend:
     build:
@@ -101,50 +61,49 @@ services:
     environment:
       - NODE_ENV=production
       - PORT=3002
-      - DATABASE_URL=postgresql://postgres:postgres@postgres:5432/snippet_db
-      - JWT_SECRET=${JWT_SECRET}
-      - JWT_REFRESH_SECRET=${JWT_REFRESH_SECRET}
+      - DATABASE_URL=postgresql://postgres:postgres@postgres_snippet:5432/snippet_db
       - AUTH_SERVICE_URL=http://auth-service:3001
       - PROJECT_ID=${PROJECT_ID}
       - API_KEY=${API_KEY}
       - OLLAMA_BASE_URL=http://ollama:11434
-      - OLLAMA_MODEL=codellama:7b
+      - OLLAMA_MODEL=tinyllama
       - CORS_ORIGIN=http://localhost:3000
+      - JWT_SECRET=${JWT_SECRET}
+      - JWT_REFRESH_SECRET=${JWT_REFRESH_SECRET}
     depends_on:
-      postgres:
+      postgres_snippet:
         condition: service_healthy
       ollama:
         condition: service_healthy
-      auth-service:
-        condition: service_started
     networks:
-      - snippet_network
+      - platform_network
     restart: unless-stopped
 
   frontend:
     build:
       context: ./frontend
       dockerfile: Dockerfile
+      args:
+        - VITE_API_URL=http://backend:3002
+        - VITE_AUTH_URL=http://auth-service:3001
+        - VITE_API_KEY=${API_KEY}
+        - VITE_PROJECT_ID=${PROJECT_ID}
     container_name: snippet_frontend
     ports:
       - "3000:3000"
     environment:
-      - VITE_API_URL=http://localhost:3002
-      - VITE_AUTH_URL=http://localhost:3001
-      - VITE_API_KEY=${API_KEY}
-      - VITE_PROJECT_ID=${PROJECT_ID}
+      - VITE_API_URL=http://backend:3002
+      - VITE_AUTH_URL=http://auth-service:3001
     depends_on:
       - backend
-      - auth-service
     networks:
-      - snippet_network
+      - platform_network
     restart: unless-stopped
 
 volumes:
-  postgres_data:
-  postgres_auth_data:
+  postgres_snippet_data:
   ollama_data:
 
 networks:
-  snippet_network:
-    driver: bridge
+  platform_network:
+    external: true

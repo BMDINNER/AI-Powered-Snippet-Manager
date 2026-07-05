@@ -15,7 +15,7 @@ export class OllamaService {
   constructor() {
     this.baseUrl = process.env.OLLAMA_BASE_URL || 'http://localhost:11434';
     this.timeout = parseInt(process.env.OLLAMA_TIMEOUT || '120000');
-    this.model = process.env.OLLAMA_MODEL || 'codellama:7b';
+    this.model = process.env.OLLAMA_MODEL || 'tinyllama';
   }
 
   async generateCode(prompt: string, language: string): Promise<string> {
