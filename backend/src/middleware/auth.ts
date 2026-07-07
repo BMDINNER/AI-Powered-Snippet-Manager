@@ -6,6 +6,7 @@ export interface AuthRequest extends Request {
   user?: {
     userId: string;
     email: string;
+    username?: string;
     projectId?: string;
   };
 }
@@ -43,6 +44,7 @@ export const authenticate = async (req: Request, res: Response, next: NextFuncti
     (req as AuthRequest).user = {
       userId: user.userId,
       email: user.email,
+      username: user.username || user.email?.split('@')[0] || 'User',
       projectId: user.projectId
     };
     
@@ -86,6 +88,7 @@ export const optionalAuth = async (req: Request, res: Response, next: NextFuncti
     (req as AuthRequest).user = {
       userId: user.userId,
       email: user.email,
+      username: user.username || user.email?.split('@')[0] || 'User',
       projectId: user.projectId
     };
   } catch (err) {

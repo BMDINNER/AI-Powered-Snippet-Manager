@@ -68,8 +68,6 @@ services:
       - OLLAMA_BASE_URL=http://ollama:11434
       - OLLAMA_MODEL=tinyllama
       - CORS_ORIGIN=http://localhost:3000
-      - JWT_SECRET=${JWT_SECRET}
-      - JWT_REFRESH_SECRET=${JWT_REFRESH_SECRET}
     depends_on:
       postgres_snippet:
         condition: service_healthy

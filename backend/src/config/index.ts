@@ -2,7 +2,7 @@ import dotenv from 'dotenv';
 
 dotenv.config();
 
-const requiredEnvVars = ['JWT_SECRET', 'JWT_REFRESH_SECRET', 'DATABASE_URL'];
+const requiredEnvVars = ['DATABASE_URL'];
 
 for (const envVar of requiredEnvVars) {
   if (!process.env[envVar]) {
