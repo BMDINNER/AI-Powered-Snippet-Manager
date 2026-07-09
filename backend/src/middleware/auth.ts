@@ -11,6 +11,12 @@ export interface AuthRequest extends Request {
   };
 }
 
+const getAuthHeaders = () => ({
+  'x-api-key': config.apiKey,
+  'x-project-id': config.projectId,
+  'Content-Type': 'application/json'
+});
+
 export const authenticate = async (req: Request, res: Response, next: NextFunction) => {
   const authHeader = req.headers.authorization;
   
@@ -35,7 +41,10 @@ export const authenticate = async (req: Request, res: Response, next: NextFuncti
       `${config.authServiceUrl}/auth/token/verify`,
       null,
       {
-        headers: { Authorization: `Bearer ${token}` }
+        headers: {
+          ...getAuthHeaders(),
+          Authorization: `Bearer ${token}`
+        }
       }
     );
 
@@ -79,7 +88,10 @@ export const optionalAuth = async (req: Request, res: Response, next: NextFuncti
       `${config.authServiceUrl}/auth/token/verify`,
       null,
       {
-        headers: { Authorization: `Bearer ${token}` }
+        headers: {
+          ...getAuthHeaders(),
+          Authorization: `Bearer ${token}`
+        }
       }
     );
 

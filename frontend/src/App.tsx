@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import { AuthProvider as LogRegAuthProvider, useAuth } from '@bmdinner/logreg';
@@ -10,9 +10,10 @@ import { SnippetList } from './components/snippets/SnippetList';
 import { SnippetForm } from './components/snippets/SnippetForm';
 import { SnippetDetail } from './components/snippets/SnippetDetail';
 import { LoadingSpinner } from './components/ui/LoadingSpinner';
-import { ForgotPasswordPage }  from './components/auth/ForgotPasswordPage';
-import { ResetPasswordPage }  from './components/auth/ResetPasswordPage';
+import { ForgotPasswordPage } from './components/auth/ForgotPasswordPage';
+import { ResetPasswordPage } from './components/auth/ResetPasswordPage';
 import { AIChatPage } from './components/ai/ai-chat-page';
+
 const PrivateRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { isAuthenticated, loading } = useAuth();
   if (loading) return <LoadingSpinner size="lg" className="py-12" />;
@@ -26,6 +27,14 @@ const PublicRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 };
 
 const AppContent: React.FC = () => {
+  const { user } = useAuth();
+
+  useEffect(() => {
+    if (user) {
+      localStorage.setItem('userData', JSON.stringify(user));
+    }
+  }, [user]);
+
   return (
     <Routes>
       <Route path="/login" element={<PublicRoute><LoginPage /></PublicRoute>} />
@@ -44,17 +53,20 @@ const AppContent: React.FC = () => {
 };
 
 const App: React.FC = () => {
-  const authUrl = import.meta.env.VITE_AUTH_URL || 'http://localhost:3001';
-  const apiKey = import.meta.env.VITE_API_KEY || '';
-  const projectId = import.meta.env.VITE_PROJECT_ID || '';
-
-  if (!apiKey || !projectId) {
-    console.error('Missing required environment variables: VITE_API_KEY, VITE_PROJECT_ID');
-  }
-
   return (
     <BrowserRouter>
-      <LogRegAuthProvider authUrl={authUrl} apiKey={apiKey} projectId={projectId}>
+      <LogRegAuthProvider
+        authUrl="http://backend:3002/auth"
+        apiKey=""
+        projectId=""
+        loginEndpoint="/login"
+        registerEndpoint="/register"
+        logoutEndpoint="/logout"
+        refreshEndpoint="/refresh"
+        verifyEndpoint="/verify"
+        forgotPasswordEndpoint="/forgot-password"
+        resetPasswordEndpoint="/reset-password"
+      >
         <AppContent />
         <Toaster position="top-right" />
       </LogRegAuthProvider>
