@@ -60,7 +60,7 @@ A full-stack application for managing code snippets with AI-powered generation, 
 | Technology | Version | Purpose                |
 |------------|---------|------------------------|
 | Ollama     | Latest  | Local LLM runner       |
-| tinyllama  | Code generation model            |
+| tinyllama  |         | Code generation model  |
 | Axios      | 1.6.x   | HTTP client for Ollama |
 
 ## Prerequisites
