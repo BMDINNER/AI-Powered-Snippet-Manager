@@ -56,16 +56,16 @@ const App: React.FC = () => {
   return (
     <BrowserRouter>
       <LogRegAuthProvider
-        authUrl="http://localhost:3002/auth"
+        authUrl="http://localhost:3002"
         apiKey=""
         projectId=""
-        loginEndpoint="/login"
-        registerEndpoint="/register"
-        logoutEndpoint="/logout"
-        refreshEndpoint="/refresh"
-        verifyEndpoint="/verify"
-        forgotPasswordEndpoint="/forgot-password"
-        resetPasswordEndpoint="/reset-password"
+        loginEndpoint="/auth/login"
+        registerEndpoint="/auth/register"
+        logoutEndpoint="/auth/logout"
+        refreshEndpoint="/auth/refresh"
+        verifyEndpoint="/auth/verify"
+        forgotPasswordEndpoint="/auth/forgot-password"
+        resetPasswordEndpoint="/auth/reset-password"
       >
         <AppContent />
         <Toaster position="top-right" />

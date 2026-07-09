@@ -94,9 +94,12 @@ export const verifyToken = async (req: Request, res: Response) => {
       return res.status(401).json({ success: false, message: 'No token provided' });
     }
     
-    const response = await axios.post(
+    console.log('=== VERIFY TOKEN ===');
+    console.log('Token:', token.substring(0, 30) + '...');
+    console.log('Auth Service URL:', `${config.authServiceUrl}/auth/token/verify`);
+    
+    const response = await axios.get(
       `${config.authServiceUrl}/auth/token/verify`,
-      null,
       { 
         headers: {
           ...getAuthHeaders(),
@@ -105,8 +108,13 @@ export const verifyToken = async (req: Request, res: Response) => {
       }
     );
     
+    console.log('Verify response:', response.data);
     res.json(response.data);
   } catch (error: any) {
+    console.error('Verify token error:', error.message);
+    if (error.response) {
+      console.error('Auth service error:', error.response.data);
+    }
     const status = error.response?.status || 401;
     const message = error.response?.data?.message || 'Invalid token';
     res.status(status).json({ success: false, message });

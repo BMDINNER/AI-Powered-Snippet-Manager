@@ -20,6 +20,9 @@ const getAuthHeaders = () => ({
 export const authenticate = async (req: Request, res: Response, next: NextFunction) => {
   const authHeader = req.headers.authorization;
   
+  console.log('=== AUTHENTICATE MIDDLEWARE ===');
+  console.log('Auth header present:', !!authHeader);
+  
   if (!authHeader) {
     return res.status(401).json({ message: 'No token provided' });
   }
@@ -36,10 +39,12 @@ export const authenticate = async (req: Request, res: Response, next: NextFuncti
     return res.status(401).json({ message: 'Token malformatted' });
   }
 
+  console.log('Token:', token.substring(0, 30) + '...');
+  console.log('Auth Service URL:', `${config.authServiceUrl}/auth/token/verify`);
+
   try {
-    const response = await axios.post(
+    const response = await axios.get(
       `${config.authServiceUrl}/auth/token/verify`,
-      null,
       {
         headers: {
           ...getAuthHeaders(),
@@ -48,6 +53,8 @@ export const authenticate = async (req: Request, res: Response, next: NextFuncti
       }
     );
 
+    console.log('Auth service response:', response.data);
+    
     const { user } = response.data;
     
     (req as AuthRequest).user = {
@@ -58,8 +65,13 @@ export const authenticate = async (req: Request, res: Response, next: NextFuncti
     };
     
     return next();
-  } catch (err) {
-    console.error('Token verification failed:', err);
+  } catch (err: any) {
+    console.error('Token verification failed:');
+    console.error('Error message:', err.message);
+    if (err.response) {
+      console.error('Auth service error status:', err.response.status);
+      console.error('Auth service error data:', err.response.data);
+    }
     return res.status(401).json({ message: 'Invalid or expired token' });
   }
 };
@@ -84,9 +96,8 @@ export const optionalAuth = async (req: Request, res: Response, next: NextFuncti
   }
 
   try {
-    const response = await axios.post(
+    const response = await axios.get(
       `${config.authServiceUrl}/auth/token/verify`,
-      null,
       {
         headers: {
           ...getAuthHeaders(),
@@ -104,7 +115,7 @@ export const optionalAuth = async (req: Request, res: Response, next: NextFuncti
       projectId: user.projectId
     };
   } catch (err) {
-    // Ignore error, user stays undefined, maybe guest
+    console.error('Optional auth error:', err);
   } finally {
     return next();
   }
