@@ -1,10 +1,11 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@bmdinner/logreg';
 import { useSnippets } from '../../hooks/useSnippets';
 import { Button } from '../ui/Button';
 import { Container } from '../ui/Container';
 import { Card } from '../ui/Card';
+import { Input } from '../ui/Input';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { 
   faUser, 
@@ -14,13 +15,20 @@ import {
   faArrowLeft,
   faCode,
   faChartLine,
-  faRocket
+  faRocket,
+  faSave,
+  faTimes
 } from '@fortawesome/free-solid-svg-icons';
+import toast from 'react-hot-toast';
 
 export const ProfilePage: React.FC = () => {
   const { user, logout } = useAuth();
   const { snippets, fetchSnippets } = useSnippets();
   const navigate = useNavigate();
+  const [isEditingEmail, setIsEditingEmail] = useState(false);
+  const [newEmail, setNewEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
   const [stats, setStats] = useState({
     total: 0,
     languages: 0,
@@ -33,6 +41,7 @@ export const ProfilePage: React.FC = () => {
       return;
     }
     fetchSnippets({ limit: 100 });
+    setNewEmail(user.email || '');
   }, [user, navigate]);
 
   useEffect(() => {
@@ -52,6 +61,50 @@ export const ProfilePage: React.FC = () => {
     await logout();
     navigate('/login');
   };
+
+  const handleUpdateEmail = async () => {
+  if (!newEmail || !password) {
+    toast.error('Please fill in all fields');
+    return;
+  }
+
+  if (!newEmail.includes('@')) {
+    toast.error('Please enter a valid email');
+    return;
+  }
+
+  setLoading(true);
+  try {
+    const token = localStorage.getItem('token');
+    const response = await fetch('http://localhost:3002/auth/email', {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify({ newEmail, password })
+    });
+
+    const data = await response.json();
+    
+    if (data.success) {
+      toast.success('Email updated successfully. Please log in again with your new email.');
+      
+      localStorage.removeItem('token');
+      localStorage.removeItem('refreshToken');
+      localStorage.removeItem('userData');
+      
+      await logout();
+      navigate('/login');
+    } else {
+      toast.error(data.message || 'Failed to update email');
+    }
+  } catch (error: any) {
+    toast.error(error.message || 'Failed to update email');
+  } finally {
+    setLoading(false);
+  }
+};
 
   const formatDate = (date: string) => {
     return new Date(date).toLocaleDateString('en-US', {
@@ -153,10 +206,64 @@ export const ProfilePage: React.FC = () => {
               <span className="text-sm font-medium text-gray-500 sm:w-32">Username</span>
               <span className="text-gray-900">{user.username || 'Not set'}</span>
             </div>
+            
             <div className="flex flex-col sm:flex-row sm:items-center py-3 border-b border-gray-100">
               <span className="text-sm font-medium text-gray-500 sm:w-32">Email</span>
-              <span className="text-gray-900">{user.email}</span>
+              {isEditingEmail ? (
+                <div className="flex-1 flex flex-col sm:flex-row gap-3">
+                  <Input
+                    type="email"
+                    value={newEmail}
+                    onChange={(e) => setNewEmail(e.target.value)}
+                    placeholder="New email address"
+                    className="flex-1"
+                  />
+                  <Input
+                    type="password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder="Current password"
+                    className="flex-1"
+                  />
+                  <div className="flex gap-2">
+                    <Button
+                      onClick={handleUpdateEmail}
+                      loading={loading}
+                      className="bg-black text-white hover:bg-gray-800"
+                    >
+                      <FontAwesomeIcon icon={faSave} className="mr-2" />
+                      Save
+                    </Button>
+                    <Button
+                      variant="secondary"
+                      onClick={() => {
+                        setIsEditingEmail(false);
+                        setNewEmail(user.email || '');
+                        setPassword('');
+                      }}
+                    >
+                      <FontAwesomeIcon icon={faTimes} className="mr-2" />
+                      Cancel
+                    </Button>
+                  </div>
+                </div>
+              ) : (
+                <div className="flex-1 flex items-center justify-between">
+                  <span className="text-gray-900">{user.email}</span>
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    onClick={() => {
+                      setIsEditingEmail(true);
+                      setNewEmail(user.email || '');
+                    }}
+                  >
+                    Change Email
+                  </Button>
+                </div>
+              )}
             </div>
+
             <div className="flex flex-col sm:flex-row sm:items-center py-3 border-b border-gray-100">
               <span className="text-sm font-medium text-gray-500 sm:w-32">Account Type</span>
               <span className="text-gray-900">{user.provider === 'local' ? 'Email & Password' : user.provider}</span>

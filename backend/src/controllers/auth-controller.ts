@@ -94,10 +94,6 @@ export const verifyToken = async (req: Request, res: Response) => {
       return res.status(401).json({ success: false, message: 'No token provided' });
     }
     
-    console.log('=== VERIFY TOKEN ===');
-    console.log('Token:', token.substring(0, 30) + '...');
-    console.log('Auth Service URL:', `${config.authServiceUrl}/auth/token/verify`);
-    
     const response = await axios.get(
       `${config.authServiceUrl}/auth/token/verify`,
       { 
@@ -108,15 +104,50 @@ export const verifyToken = async (req: Request, res: Response) => {
       }
     );
     
-    console.log('Verify response:', response.data);
     res.json(response.data);
   } catch (error: any) {
-    console.error('Verify token error:', error.message);
+    const status = error.response?.status || 401;
+    const message = error.response?.data?.message || 'Invalid token';
+    res.status(status).json({ success: false, message });
+  }
+};
+
+export const updateEmail = async (req: Request, res: Response) => {
+  try {
+    const { newEmail, password } = req.body;
+    const token = req.headers.authorization?.split(' ')[1];
+    
+    console.log('=== UPDATE EMAIL ===');
+    console.log('New email:', newEmail);
+    console.log('Token:', token?.substring(0, 30) + '...');
+    
+    if (!newEmail || !password) {
+      return res.status(400).json({
+        success: false,
+        message: 'New email and password are required'
+      });
+    }
+
+    const response = await axios.put(
+      `${config.authServiceUrl}/auth/email`,
+      { newEmail, password },
+      {
+        headers: {
+          ...getAuthHeaders(),
+          Authorization: `Bearer ${token}`
+        }
+      }
+    );
+    
+    console.log('Auth service response:', response.data);
+    res.json(response.data);
+  } catch (error: any) {
+    console.error('Update email error:', error.message);
     if (error.response) {
       console.error('Auth service error:', error.response.data);
     }
-    const status = error.response?.status || 401;
-    const message = error.response?.data?.message || 'Invalid token';
+    const status = error.response?.status || 500;
+    const message = error.response?.data?.message || error.message;
     res.status(status).json({ success: false, message });
   }
 };
