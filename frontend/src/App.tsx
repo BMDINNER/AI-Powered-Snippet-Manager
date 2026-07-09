@@ -56,7 +56,7 @@ const App: React.FC = () => {
   return (
     <BrowserRouter>
       <LogRegAuthProvider
-        authUrl="http://backend:3002/auth"
+        authUrl="http://localhost:3002/auth"
         apiKey=""
         projectId=""
         loginEndpoint="/login"
