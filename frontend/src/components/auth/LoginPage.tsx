@@ -14,6 +14,8 @@ import {
 } from '@fortawesome/free-solid-svg-icons';
 import { faGoogle, faGithub } from '@fortawesome/free-brands-svg-icons';
 
+const AUTH_URL = import.meta.env.VITE_AUTH_URL || 'http://localhost:3001';
+
 export const LoginPage: React.FC = () => {
   const navigate = useNavigate();
   const { login, isAuthenticated } = useAuth();
@@ -44,8 +46,11 @@ export const LoginPage: React.FC = () => {
   };
 
   const handleOAuthLogin = (provider: string) => {
-    const authUrl = import.meta.env.VITE_AUTH_URL || 'http://localhost:3001';
-    window.location.href = `${authUrl}/auth/oauth/${provider}`;
+    window.location.href = `${AUTH_URL}/auth/oauth/${provider}`;
+  };
+
+  const handleForgotPassword = () => {
+    window.location.href = `${AUTH_URL}/forgot-password`;
   };
 
   return (
@@ -90,12 +95,13 @@ export const LoginPage: React.FC = () => {
             </div>
 
             <div className="flex items-center justify-end">
-              <Link
-                to="/forgot-password"
+              <button
+                type="button"
+                onClick={handleForgotPassword}
                 className="text-sm text-gray-600 hover:text-gray-900 transition-colors"
               >
                 Forgot password?
-              </Link>
+              </button>
             </div>
 
             <Button

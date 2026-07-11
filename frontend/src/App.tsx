@@ -33,28 +33,6 @@ const AppContent: React.FC = () => {
     }
   }, [user]);
 
-  useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    if (params.get('emailUpdated') === 'true') {
-      // Refresh user data
-      const token = localStorage.getItem('token');
-      if (token) {
-        fetch('http://localhost:3002/auth/verify', {
-          headers: { 'Authorization': `Bearer ${token}` }
-        })
-        .then(res => res.json())
-        .then(data => {
-          if (data.valid && data.user) {
-            const userData = JSON.parse(localStorage.getItem('userData') || '{}');
-            const updated = { ...userData, ...data.user };
-            localStorage.setItem('userData', JSON.stringify(updated));
-          }
-        });
-      }
-      window.history.replaceState({}, '', window.location.pathname);
-    }
-  }, []);
-
   return (
     <Routes>
       <Route path="/login" element={<PublicRoute><LoginPage /></PublicRoute>} />
