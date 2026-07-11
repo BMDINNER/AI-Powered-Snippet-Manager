@@ -54,14 +54,13 @@ A full-stack application for managing code snippets with AI-powered generation, 
 | JSON Web Token | 9.x     | Access and refresh tokens   |
 | Passport       | 0.7.x   | OAuth strategies            |
 | Bcrypt         | 5.x     | Password hashing            |
-| Nodemailer     | 6.x     | Email for password reset    |
 
 ### AI Service
 
 | Technology | Version | Purpose                |
 |------------|---------|------------------------|
 | Ollama     | Latest  | Local LLM runner       |
-| tinyllama  |       | Code generation model  |
+| tinyllama  |         | Code generation model  |
 | Axios      | 1.6.x   | HTTP client for Ollama |
 
 ## Prerequisites
