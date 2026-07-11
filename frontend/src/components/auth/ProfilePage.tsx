@@ -17,7 +17,8 @@ import {
   faChartLine,
   faRocket,
   faSave,
-  faTimes
+  faTimes,
+  faLock
 } from '@fortawesome/free-solid-svg-icons';
 import toast from 'react-hot-toast';
 
@@ -25,9 +26,14 @@ export const ProfilePage: React.FC = () => {
   const { user, logout } = useAuth();
   const { snippets, fetchSnippets } = useSnippets();
   const navigate = useNavigate();
+  
   const [isEditingEmail, setIsEditingEmail] = useState(false);
+  const [isChangingPassword, setIsChangingPassword] = useState(false);
   const [newEmail, setNewEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [currentPassword, setCurrentPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmNewPassword, setConfirmNewPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [stats, setStats] = useState({
     total: 0,
@@ -63,32 +69,81 @@ export const ProfilePage: React.FC = () => {
   };
 
   const handleUpdateEmail = async () => {
-  if (!newEmail || !password) {
+    if (!newEmail || !password) {
+      toast.error('Please fill in all fields');
+      return;
+    }
+
+    if (!newEmail.includes('@')) {
+      toast.error('Please enter a valid email');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch('http://localhost:3002/auth/email', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ newEmail, password })
+      });
+
+      const data = await response.json();
+      
+      if (data.success) {
+        toast.success('Email updated successfully. Please log in again with your new email.');
+        
+        localStorage.removeItem('token');
+        localStorage.removeItem('refreshToken');
+        localStorage.removeItem('userData');
+        
+        await logout();
+        navigate('/login');
+      } else {
+        toast.error(data.message || 'Failed to update email');
+      }
+    } catch (error: any) {
+      toast.error(error.message || 'Failed to update email');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleChangePassword = async () => {
+  if (!currentPassword || !newPassword || !confirmNewPassword) {
     toast.error('Please fill in all fields');
     return;
   }
 
-  if (!newEmail.includes('@')) {
-    toast.error('Please enter a valid email');
+  if (newPassword.length < 6) {
+    toast.error('New password must be at least 6 characters');
+    return;
+  }
+
+  if (newPassword !== confirmNewPassword) {
+    toast.error('Passwords do not match');
     return;
   }
 
   setLoading(true);
   try {
     const token = localStorage.getItem('token');
-    const response = await fetch('http://localhost:3002/auth/email', {
+    const response = await fetch('http://localhost:3002/auth/change-password', {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${token}`
       },
-      body: JSON.stringify({ newEmail, password })
+      body: JSON.stringify({ currentPassword, newPassword })
     });
 
     const data = await response.json();
     
     if (data.success) {
-      toast.success('Email updated successfully. Please log in again with your new email.');
+      toast.success('Password changed successfully. Please log in again with your new password.');
       
       localStorage.removeItem('token');
       localStorage.removeItem('refreshToken');
@@ -97,10 +152,10 @@ export const ProfilePage: React.FC = () => {
       await logout();
       navigate('/login');
     } else {
-      toast.error(data.message || 'Failed to update email');
+      toast.error(data.message || 'Failed to change password');
     }
   } catch (error: any) {
-    toast.error(error.message || 'Failed to update email');
+    toast.error(error.message || 'Failed to change password');
   } finally {
     setLoading(false);
   }
@@ -259,6 +314,69 @@ export const ProfilePage: React.FC = () => {
                     }}
                   >
                     Change Email
+                  </Button>
+                </div>
+              )}
+            </div>
+
+            <div className="flex flex-col sm:flex-row sm:items-center py-3 border-b border-gray-100">
+              <span className="text-sm font-medium text-gray-500 sm:w-32">Password</span>
+              {isChangingPassword ? (
+                <div className="flex-1 flex flex-col sm:flex-row gap-3">
+                  <Input
+                    type="password"
+                    value={currentPassword}
+                    onChange={(e) => setCurrentPassword(e.target.value)}
+                    placeholder="Current password"
+                    className="flex-1"
+                  />
+                  <Input
+                    type="password"
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                    placeholder="New password"
+                    className="flex-1"
+                  />
+                  <Input
+                    type="password"
+                    value={confirmNewPassword}
+                    onChange={(e) => setConfirmNewPassword(e.target.value)}
+                    placeholder="Confirm new password"
+                    className="flex-1"
+                  />
+                  <div className="flex gap-2">
+                    <Button
+                      onClick={handleChangePassword}
+                      loading={loading}
+                      className="bg-black text-white hover:bg-gray-800"
+                    >
+                      <FontAwesomeIcon icon={faSave} className="mr-2" />
+                      Save
+                    </Button>
+                    <Button
+                      variant="secondary"
+                      onClick={() => {
+                        setIsChangingPassword(false);
+                        setCurrentPassword('');
+                        setNewPassword('');
+                        setConfirmNewPassword('');
+                      }}
+                    >
+                      <FontAwesomeIcon icon={faTimes} className="mr-2" />
+                      Cancel
+                    </Button>
+                  </div>
+                </div>
+              ) : (
+                <div className="flex-1 flex items-center justify-between">
+                  <span className="text-gray-500">••••••••</span>
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    onClick={() => setIsChangingPassword(true)}
+                  >
+                    <FontAwesomeIcon icon={faLock} className="mr-2" />
+                    Change Password
                   </Button>
                 </div>
               )}

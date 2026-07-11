@@ -117,10 +117,6 @@ export const updateEmail = async (req: Request, res: Response) => {
     const { newEmail, password } = req.body;
     const token = req.headers.authorization?.split(' ')[1];
     
-    console.log('=== UPDATE EMAIL ===');
-    console.log('New email:', newEmail);
-    console.log('Token:', token?.substring(0, 30) + '...');
-    
     if (!newEmail || !password) {
       return res.status(400).json({
         success: false,
@@ -139,13 +135,103 @@ export const updateEmail = async (req: Request, res: Response) => {
       }
     );
     
-    console.log('Auth service response:', response.data);
     res.json(response.data);
   } catch (error: any) {
-    console.error('Update email error:', error.message);
-    if (error.response) {
-      console.error('Auth service error:', error.response.data);
+    const status = error.response?.status || 500;
+    const message = error.response?.data?.message || error.message;
+    res.status(status).json({ success: false, message });
+  }
+};
+
+export const changePassword = async (req: Request, res: Response) => {
+  try {
+    const { currentPassword, newPassword } = req.body;
+    const token = req.headers.authorization?.split(' ')[1];
+    
+    if (!currentPassword || !newPassword) {
+      return res.status(400).json({
+        success: false,
+        message: 'Current password and new password are required'
+      });
     }
+
+    if (newPassword.length < 6) {
+      return res.status(400).json({
+        success: false,
+        message: 'New password must be at least 6 characters'
+      });
+    }
+
+    const response = await axios.put(
+      `${config.authServiceUrl}/auth/change-password`,
+      { currentPassword, newPassword },
+      {
+        headers: {
+          ...getAuthHeaders(),
+          Authorization: `Bearer ${token}`
+        }
+      }
+    );
+    
+    res.json(response.data);
+  } catch (error: any) {
+    const status = error.response?.status || 500;
+    const message = error.response?.data?.message || error.message;
+    res.status(status).json({ success: false, message });
+  }
+};
+
+export const forgotPassword = async (req: Request, res: Response) => {
+  try {
+    const { email } = req.body;
+    
+    if (!email) {
+      return res.status(400).json({
+        success: false,
+        message: 'Email is required'
+      });
+    }
+
+    const response = await axios.post(
+      `${config.authServiceUrl}/auth/forgot-password`,
+      { email },
+      { headers: getAuthHeaders() }
+    );
+    
+    res.json(response.data);
+  } catch (error: any) {
+    const status = error.response?.status || 500;
+    const message = error.response?.data?.message || error.message;
+    res.status(status).json({ success: false, message });
+  }
+};
+
+export const resetPassword = async (req: Request, res: Response) => {
+  try {
+    const { token, newPassword } = req.body;
+    
+    if (!token || !newPassword) {
+      return res.status(400).json({
+        success: false,
+        message: 'Token and new password are required'
+      });
+    }
+
+    if (newPassword.length < 6) {
+      return res.status(400).json({
+        success: false,
+        message: 'New password must be at least 6 characters'
+      });
+    }
+
+    const response = await axios.post(
+      `${config.authServiceUrl}/auth/reset-password`,
+      { token, newPassword },
+      { headers: getAuthHeaders() }
+    );
+    
+    res.json(response.data);
+  } catch (error: any) {
     const status = error.response?.status || 500;
     const message = error.response?.data?.message || error.message;
     res.status(status).json({ success: false, message });

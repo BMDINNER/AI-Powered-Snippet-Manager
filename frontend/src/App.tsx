@@ -10,8 +10,6 @@ import { SnippetList } from './components/snippets/SnippetList';
 import { SnippetForm } from './components/snippets/SnippetForm';
 import { SnippetDetail } from './components/snippets/SnippetDetail';
 import { LoadingSpinner } from './components/ui/LoadingSpinner';
-import { ForgotPasswordPage } from './components/auth/ForgotPasswordPage';
-import { ResetPasswordPage } from './components/auth/ResetPasswordPage';
 import { AIChatPage } from './components/ai/ai-chat-page';
 
 const PrivateRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -61,8 +59,6 @@ const AppContent: React.FC = () => {
     <Routes>
       <Route path="/login" element={<PublicRoute><LoginPage /></PublicRoute>} />
       <Route path="/register" element={<PublicRoute><RegisterPage /></PublicRoute>} />
-      <Route path="/forgot-password" element={<PublicRoute><ForgotPasswordPage /></PublicRoute>} />
-      <Route path="/reset-password" element={<PublicRoute><ResetPasswordPage /></PublicRoute>} />
       <Route path="/profile" element={<PrivateRoute><ProfilePage /></PrivateRoute>} />
       <Route path="/ai-chat" element={<PrivateRoute><Layout><AIChatPage /></Layout></PrivateRoute>} />
       <Route path="/snippets" element={<PrivateRoute><Layout><SnippetList /></Layout></PrivateRoute>} />
