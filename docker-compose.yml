@@ -36,7 +36,7 @@ services:
       ollama serve &
       sleep 10 &&
       if ! ollama list | grep -q 'tinyllama'; then
-        echo 'Downloading tinyllama model (~1.1GB)...' &&
+        echo 'Downloading tinyllama model...' &&
         ollama pull tinyllama &&
         echo 'Model download complete!'
       else
