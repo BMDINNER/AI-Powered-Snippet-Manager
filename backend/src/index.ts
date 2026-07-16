@@ -42,7 +42,23 @@ app.use('/api/ai', authenticate, aiRoutes);
 
 app.get('/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
- });
+});
+
+app.get('/debug/config', (req, res) => {
+  res.json({
+    projectId: config.projectId || 'NOT SET',
+    apiKey: config.apiKey ? 'PRESENT' : 'NOT SET',
+    authServiceUrl: config.authServiceUrl,
+    nodeEnv: process.env.NODE_ENV,
+    hasProjectId: !!config.projectId,
+    hasApiKey: !!config.apiKey,
+    allKeys: Object.keys(process.env).filter(k => 
+      k.includes('PROJECT') || 
+      k.includes('API') || 
+      k.includes('AUTH')
+    )
+  });
+});
 
 app.listen(port, () => {
   console.log(`Snippet manager backend running on port ${port}`);
