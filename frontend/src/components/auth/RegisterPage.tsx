@@ -12,11 +12,9 @@ import {
   faLock, 
   faArrowRight
 } from '@fortawesome/free-solid-svg-icons';
-import { 
-  faGoogle,
-  faGithub
-} from '@fortawesome/free-brands-svg-icons';
+import { faGoogle, faGithub } from '@fortawesome/free-brands-svg-icons';
 import { faCode } from '@fortawesome/free-solid-svg-icons';
+import toast from 'react-hot-toast';
 
 export const RegisterPage: React.FC = () => {
   const navigate = useNavigate();
@@ -40,7 +38,12 @@ export const RegisterPage: React.FC = () => {
         email: formData.email,
         password: formData.password
       });
-      navigate('/snippets');
+      
+      toast.success('Registration successful! Please login.');
+      localStorage.removeItem('token');
+      localStorage.removeItem('refreshToken');
+      localStorage.removeItem('userData');
+      navigate('/login');
     } catch (err: any) {
       setError(err.message || 'Registration failed');
     } finally {

@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
-import axios from 'axios';
 import { config } from '../config/index.js';
+import axios from 'axios';
 
 const getAuthHeaders = () => ({
   'x-api-key': config.apiKey,

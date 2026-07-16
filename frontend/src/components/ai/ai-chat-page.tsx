@@ -7,7 +7,9 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { 
   faRobot, 
   faPaperPlane, 
+  faArrowLeft,
   faSpinner,
+  faUser,
   faTrash,
   faCopy,
   faCode,
