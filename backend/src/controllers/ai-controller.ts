@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import aiService from '../services/ai-service';
+import { groqService } from '../services/groq-service.js';
 
 export const generateSnippet = async (req: Request, res: Response) => {
   try {
@@ -12,7 +12,13 @@ export const generateSnippet = async (req: Request, res: Response) => {
       });
     }
 
-    const code = await aiService.generateSnippet(title, description, language);
+    const prompt = `Generate a code snippet in ${language} for the following:
+Title: ${title}
+Description: ${description}
+
+Provide only the code without any explanations or markdown formatting.`;
+
+    const code = await groqService.generateCode(prompt, language);
 
     res.json({
       success: true,
@@ -43,7 +49,7 @@ export const improveSnippet = async (req: Request, res: Response) => {
       });
     }
 
-    const improvedCode = await aiService.improveSnippet(code, instructions);
+    const improvedCode = await groqService.optimizeCode(code, 'code');
 
     res.json({
       success: true,
@@ -71,7 +77,7 @@ export const explainCode = async (req: Request, res: Response) => {
       });
     }
 
-    const explanation = await aiService.explainCode(code);
+    const explanation = await groqService.explainCode(code, 'code');
 
     res.json({
       success: true,
@@ -88,14 +94,42 @@ export const explainCode = async (req: Request, res: Response) => {
   }
 };
 
-export const checkHealth = async (req: Request, res: Response) => {
+export const chatWithAI = async (req: Request, res: Response) => {
   try {
-    const isHealthy = await aiService.checkHealth();
+    const { messages } = req.body;
+
+    if (!messages || !Array.isArray(messages) || messages.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'Messages are required'
+      });
+    }
+
+    const response = await groqService.chat(messages);
+
     res.json({
       success: true,
       data: {
-        healthy: isHealthy,
-        model: process.env.LLAMA_MODEL || 'llama3.2:3b-instruct-q4_K_M'
+        response
+      }
+    });
+  } catch (error: any) {
+    console.error('Chat error:', error);
+    res.status(500).json({
+      success: false,
+      message: error.message || 'Failed to chat with AI'
+    });
+  }
+};
+
+export const checkHealth = async (req: Request, res: Response) => {
+  try {
+    const health = await groqService.checkHealth();
+    res.json({
+      success: true,
+      data: {
+        healthy: health.available,
+        model: process.env.GROQ_MODEL || 'llama-3.3-70b-versatile'
       }
     });
   } catch (error: any) {

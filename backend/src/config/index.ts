@@ -2,7 +2,7 @@ import dotenv from 'dotenv';
 
 dotenv.config();
 
-const requiredEnvVars = ['DATABASE_URL'];
+const requiredEnvVars = ['DATABASE_URL', 'GROQ_API_KEY'];
 
 for (const envVar of requiredEnvVars) {
   if (!process.env[envVar]) {
@@ -19,6 +19,6 @@ export const config = {
   authServiceUrl: process.env.AUTH_SERVICE_URL || 'http://localhost:3001',
   projectId: process.env.PROJECT_ID || '',
   apiKey: process.env.API_KEY || '',
-  llamaBaseUrl: process.env.LLAMA_BASE_URL || 'http://localhost:8080',
-  llamaModel: process.env.LLAMA_MODEL || 'llama3.2:3b-instruct-q4_K_M',
+  groqApiKey: process.env.GROQ_API_KEY || '',
+  groqModel: process.env.GROQ_MODEL || 'llama-3.3-70b-versatile',
 };

@@ -1,4 +1,4 @@
-import axios from 'axios';
+import Groq from 'groq-sdk';
 import { config } from '../config/index.js';
 
 interface GenerateRequest {
@@ -9,38 +9,31 @@ interface GenerateRequest {
 }
 
 export class AIService {
-  private baseUrl: string;
+  private groq: Groq;
   private model: string;
 
   constructor() {
-    this.baseUrl = process.env.LLAMA_BASE_URL || 'http://localhost:8080';
-    this.model = process.env.LLAMA_MODEL || 'llama3.2:3b-instruct-q4_K_M';
+    this.groq = new Groq({ apiKey: config.groqApiKey });
+    this.model = config.groqModel;
   }
 
   async generateCode(request: GenerateRequest): Promise<string> {
     try {
       const systemPrompt = request.system || 'You are a helpful code assistant. Generate clean, well-documented code snippets.';
       
-      const response = await axios.post(`${this.baseUrl}/completion`, {
-        prompt: request.prompt,
-        system: systemPrompt,
+      const response = await this.groq.chat.completions.create({
+        messages: [
+          { role: 'system', content: systemPrompt },
+          { role: 'user', content: request.prompt }
+        ],
+        model: this.model,
         temperature: request.temperature || 0.7,
         max_tokens: request.maxTokens || 500,
-        stream: false,
-        model: this.model
       });
 
-      return response.data.content || response.data.response || response.data.text || '';
+      return response.choices[0]?.message?.content || '';
     } catch (error: any) {
       console.error('AI Service Error:', error.message);
-      if (error.response) {
-        console.error('Response data:', error.response.data);
-      }
-      
-      if (error.code === 'ECONNREFUSED') {
-        throw new Error('LLAMA server is not running. Please ensure llama.cpp server is started.');
-      }
-      
       throw new Error(`AI generation failed: ${error.message}`);
     }
   }
@@ -83,8 +76,12 @@ Provide a clear, concise explanation.`;
 
   async checkHealth(): Promise<boolean> {
     try {
-      const response = await axios.get(`${this.baseUrl}/health`);
-      return response.status === 200;
+      await this.groq.chat.completions.create({
+        messages: [{ role: 'user', content: 'test' }],
+        model: this.model,
+        max_tokens: 1,
+      });
+      return true;
     } catch (error) {
       return false;
     }
