@@ -21,4 +21,5 @@ export const config = {
   apiKey: process.env.API_KEY || '',
   groqApiKey: process.env.GROQ_API_KEY || '',
   groqModel: process.env.GROQ_MODEL || 'llama-3.3-70b-versatile',
+  corsOrigin: process.env.CORS_ORIGIN || 'http://localhost:3000',
 };

@@ -9,8 +9,23 @@ import { authenticate } from './middleware/auth.js';
 const app = express();
 const port = config.port;
 
+const allowedOrigins = [
+  'http://localhost:3000',
+  'http://localhost:3005',
+  'https://snippet-frontend.onrender.com',
+  config.corsOrigin
+].filter(Boolean);
+
 app.use(cors({
-  origin: ['http://localhost:3000', 'http://localhost:3005'],
+  origin: function (origin, callback) {
+    if (!origin) return callback(null, true);
+    if (allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      console.log('Blocked origin:', origin);
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'Accept']
