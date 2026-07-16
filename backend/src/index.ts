@@ -1,3 +1,6 @@
+import dotenv from 'dotenv';
+dotenv.config();
+
 import express from 'express';
 import cors from 'cors';
 import { config } from './config/index.js';
@@ -28,7 +31,7 @@ app.use(cors({
   },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'Accept']
+  allowedHeaders: ['Content-Type', 'Authorization', 'Accept', 'x-api-key', 'x-project-id']
 }));
 
 app.use(express.json());
@@ -39,7 +42,7 @@ app.use('/api/ai', authenticate, aiRoutes);
 
 app.get('/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
-});
+ });
 
 app.listen(port, () => {
   console.log(`Snippet manager backend running on port ${port}`);
