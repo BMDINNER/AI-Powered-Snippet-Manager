@@ -1,125 +1,110 @@
-import { Response } from 'express';
-import { AuthRequest } from '../middleware/auth.js';
-import { aiService } from '../services/ai-service.js';
-import { ollamaService } from '../services/ollama-service.js';
+import { Request, Response } from 'express';
+import aiService from '../services/ai-service';
 
-export const generateSnippet = async (req: AuthRequest, res: Response) => {
+export const generateSnippet = async (req: Request, res: Response) => {
   try {
-    const { prompt, language } = req.body;
-    
-    console.log('Generate snippet request:', { prompt, language, userId: req.user?.userId });
-    
-    if (!prompt || !language) {
-      return res.status(400).json({ error: 'Prompt and language are required' });
+    const { title, description, language } = req.body;
+
+    if (!title || !description || !language) {
+      return res.status(400).json({
+        success: false,
+        message: 'Title, description, and language are required'
+      });
     }
 
-    if (!req.user) {
-      return res.status(401).json({ error: 'Unauthorized' });
-    }
+    const code = await aiService.generateSnippet(title, description, language);
 
-    const result = await aiService.generateSnippetFromPrompt(prompt, language, req.user.userId);
-    
-    console.log('Generate snippet result:', { 
-      title: result.title, 
-      codeLength: result.code?.length,
-      tags: result.tags 
-    });
-    
     res.json({
-      title: result.title,
-      code: result.code,
-      language: result.language,
-      tags: result.tags,
-      description: result.description
+      success: true,
+      data: {
+        code,
+        language,
+        title,
+        description
+      }
     });
   } catch (error: any) {
-    console.error('AI generation error:', error);
-    res.status(500).json({ 
-      error: 'Failed to generate snippet',
-      message: error.message 
+    console.error('Generate snippet error:', error);
+    res.status(500).json({
+      success: false,
+      message: error.message || 'Failed to generate snippet'
     });
   }
 };
 
-export const explainCode = async (req: AuthRequest, res: Response) => {
+export const improveSnippet = async (req: Request, res: Response) => {
   try {
-    const { code, language } = req.body;
-    
-    if (!code || !language) {
-      return res.status(400).json({ error: 'Code and language are required' });
+    const { code, instructions } = req.body;
+
+    if (!code || !instructions) {
+      return res.status(400).json({
+        success: false,
+        message: 'Code and instructions are required'
+      });
     }
 
-    const explanation = await aiService.explainSnippet(code, language);
-    
-    res.json({ 
-      explanation
-    });
-  } catch (error: any) {
-    console.error('AI explanation error:', error);
-    res.status(500).json({ 
-      error: 'Failed to explain code',
-      message: error.message 
-    });
-  }
-};
+    const improvedCode = await aiService.improveSnippet(code, instructions);
 
-export const optimizeCode = async (req: AuthRequest, res: Response) => {
-  try {
-    const { code, language } = req.body;
-    
-    if (!code || !language) {
-      return res.status(400).json({ error: 'Code and language are required' });
-    }
-
-    const optimizedCode = await aiService.optimizeExistingCode(code, language);
-    
-    res.json({ 
-      optimizedCode
-    });
-  } catch (error: any) {
-    console.error('AI optimization error:', error);
-    res.status(500).json({ 
-      error: 'Failed to optimize code',
-      message: error.message 
-    });
-  }
-};
-
-export const chat = async (req: AuthRequest, res: Response) => {
-  try {
-    const { messages } = req.body;
-    
-    if (!messages || !Array.isArray(messages)) {
-      return res.status(400).json({ error: 'Messages array is required' });
-    }
-
-    const response = await aiService.chatWithAI(messages);
-    
-    res.json({ 
-      response
-    });
-  } catch (error: any) {
-    console.error('AI chat error:', error);
-    res.status(500).json({ 
-      error: 'Failed to chat with AI',
-      message: error.message 
-    });
-  }
-};
-
-export const getAIStatus = async (req: AuthRequest, res: Response) => {
-  try {
-    const health = await ollamaService.checkHealth();
-    
     res.json({
-      available: health.available,
-      models: health.models || [],
-      url: process.env.OLLAMA_BASE_URL || 'http://localhost:11434'
+      success: true,
+      data: {
+        code: improvedCode
+      }
+    });
+  } catch (error: any) {
+    console.error('Improve snippet error:', error);
+    res.status(500).json({
+      success: false,
+      message: error.message || 'Failed to improve snippet'
+    });
+  }
+};
+
+export const explainCode = async (req: Request, res: Response) => {
+  try {
+    const { code } = req.body;
+
+    if (!code) {
+      return res.status(400).json({
+        success: false,
+        message: 'Code is required'
+      });
+    }
+
+    const explanation = await aiService.explainCode(code);
+
+    res.json({
+      success: true,
+      data: {
+        explanation
+      }
+    });
+  } catch (error: any) {
+    console.error('Explain code error:', error);
+    res.status(500).json({
+      success: false,
+      message: error.message || 'Failed to explain code'
+    });
+  }
+};
+
+export const checkHealth = async (req: Request, res: Response) => {
+  try {
+    const isHealthy = await aiService.checkHealth();
+    res.json({
+      success: true,
+      data: {
+        healthy: isHealthy,
+        model: process.env.LLAMA_MODEL || 'llama3.2:3b-instruct-q4_K_M'
+      }
     });
   } catch (error: any) {
     res.json({
-      available: false,
-      error: error.message
+      success: true,
+      data: {
+        healthy: false,
+        error: error.message
+      }
     });
   }
 };

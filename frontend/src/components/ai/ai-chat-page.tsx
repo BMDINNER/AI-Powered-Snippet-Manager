@@ -1,285 +1,313 @@
-import React, { useState, useRef, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useAI } from '../../hooks/useAI';
-import { Card } from '../ui/Card';
+import React, { useState } from 'react';
+import { useAuth } from '@bmdinner/logreg';
 import { Button } from '../ui/Button';
-import { Container } from '../ui/Container';
+import { Input } from '../ui/Input';
+import { Card } from '../ui/Card';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { 
   faRobot, 
   faPaperPlane, 
-  faArrowLeft,
   faSpinner,
-  faUser,
   faTrash,
-  faCopy
+  faCopy,
+  faCode,
+  faLightbulb
 } from '@fortawesome/free-solid-svg-icons';
 import toast from 'react-hot-toast';
 
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3002';
+
 interface Message {
   id: string;
-  role: 'user' | 'assistant' | 'system';
+  role: 'user' | 'assistant';
   content: string;
-  timestamp: Date;
+  type?: 'code' | 'explanation' | 'general';
 }
 
 export const AIChatPage: React.FC = () => {
-  const navigate = useNavigate();
-  const { chat } = useAI();
+  const { user } = useAuth();
   const [messages, setMessages] = useState<Message[]>([
     {
       id: '1',
-      role: 'system',
-      content: 'Hello! I am your AI assistant. I can help you with code-related questions, explain concepts, and assist with your snippets. What can I help you with today?',
-      timestamp: new Date()
+      role: 'assistant',
+      content: 'Hello! I can help you generate code snippets, explain code, or improve existing code. What would you like to do?',
+      type: 'general'
     }
   ]);
   const [input, setInput] = useState('');
-  const [isSending, setIsSending] = useState(false);
-  const messagesEndRef = useRef<HTMLDivElement>(null);
-  const inputRef = useRef<HTMLTextAreaElement>(null);
+  const [loading, setLoading] = useState(false);
+  const [selectedLanguage, setSelectedLanguage] = useState('javascript');
+  const [mode, setMode] = useState<'generate' | 'explain' | 'improve'>('generate');
 
-  useEffect(() => {
-    scrollToBottom();
-  }, [messages]);
+  const languages = [
+    'javascript', 'python', 'typescript', 'go', 'rust', 'cpp', 'java', 'csharp', 'php', 'ruby', 'swift', 'kotlin'
+  ];
 
-  useEffect(() => {
-    if (inputRef.current) {
-      inputRef.current.focus();
-    }
-  }, []);
-
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  const handleCopy = (text: string) => {
+    navigator.clipboard.writeText(text);
+    toast.success('Copied to clipboard');
   };
 
-  const handleSend = async () => {
-    if (!input.trim() || isSending) return;
-
-    const userMessage: Message = {
-      id: Date.now().toString(),
-      role: 'user',
-      content: input.trim(),
-      timestamp: new Date()
-    };
-
-    setMessages(prev => [...prev, userMessage]);
-    setInput('');
-    setIsSending(true);
-
-    try {
-      const chatMessages = messages
-        .concat(userMessage)
-        .filter(msg => msg.role !== 'system')
-        .map(msg => ({
-          role: msg.role,
-          content: msg.content
-        }));
-
-      const response = await chat(chatMessages);
-
-      const assistantMessage: Message = {
-        id: (Date.now() + 1).toString(),
-        role: 'assistant',
-        content: response,
-        timestamp: new Date()
-      };
-
-      setMessages(prev => [...prev, assistantMessage]);
-    } catch (error: any) {
-      console.error('Chat error:', error);
-      toast.error(error.message || 'Failed to get response from AI');
-      
-      const errorMessage: Message = {
-        id: (Date.now() + 1).toString(),
-        role: 'system',
-        content: 'Sorry, I encountered an error. Please try again.',
-        timestamp: new Date()
-      };
-      setMessages(prev => [...prev, errorMessage]);
-    } finally {
-      setIsSending(false);
-    }
-  };
-
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault();
-      handleSend();
-    }
-  };
-
-  const clearChat = () => {
+  const handleClearChat = () => {
     setMessages([
       {
         id: '1',
-        role: 'system',
-        content: 'Chat cleared. How can I help you?',
-        timestamp: new Date()
+        role: 'assistant',
+        content: 'Chat cleared. How can I help you with code?',
+        type: 'general'
       }
     ]);
     toast.success('Chat cleared');
   };
 
-  const copyToClipboard = (content: string) => {
-    navigator.clipboard.writeText(content);
-    toast.success('Copied to clipboard');
-  };
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!input.trim()) return;
+    
+    const userMessage: Message = {
+      id: Date.now().toString(),
+      role: 'user',
+      content: input,
+      type: 'general'
+    };
+    
+    setMessages(prev => [...prev, userMessage]);
+    setInput('');
+    setLoading(true);
 
-  const formatTime = (date: Date) => {
-    return date.toLocaleTimeString('en-US', {
-      hour: '2-digit',
-      minute: '2-digit'
-    });
+    try {
+      const token = localStorage.getItem('token');
+      let response;
+      let aiMessage: Message;
+
+      switch (mode) {
+        case 'generate':
+          response = await fetch(`${API_URL}/api/ai/generate`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({
+              title: input,
+              description: 'Generated code snippet',
+              language: selectedLanguage
+            })
+          });
+          
+          const generateData = await response.json();
+          if (generateData.success) {
+            aiMessage = {
+              id: Date.now().toString(),
+              role: 'assistant',
+              content: generateData.data.code,
+              type: 'code'
+            };
+          } else {
+            throw new Error(generateData.message);
+          }
+          break;
+
+        case 'explain':
+          response = await fetch(`${API_URL}/api/ai/explain`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({ code: input })
+          });
+          
+          const explainData = await response.json();
+          if (explainData.success) {
+            aiMessage = {
+              id: Date.now().toString(),
+              role: 'assistant',
+              content: explainData.data.explanation,
+              type: 'explanation'
+            };
+          } else {
+            throw new Error(explainData.message);
+          }
+          break;
+
+        case 'improve':
+          response = await fetch(`${API_URL}/api/ai/improve`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({
+              code: input,
+              instructions: 'Improve the code quality and readability'
+            })
+          });
+          
+          const improveData = await response.json();
+          if (improveData.success) {
+            aiMessage = {
+              id: Date.now().toString(),
+              role: 'assistant',
+              content: improveData.data.code,
+              type: 'code'
+            };
+          } else {
+            throw new Error(improveData.message);
+          }
+          break;
+
+        default:
+          throw new Error('Invalid mode');
+      }
+
+      setMessages(prev => [...prev, aiMessage]);
+    } catch (error: any) {
+      console.error('AI Error:', error);
+      
+      const errorMessage: Message = {
+        id: Date.now().toString(),
+        role: 'assistant',
+        content: `Error: ${error.message || 'Failed to process request. Please try again.'}`,
+        type: 'general'
+      };
+      setMessages(prev => [...prev, errorMessage]);
+      
+      toast.error(error.message || 'AI request failed');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="bg-gradient-to-r from-black to-gray-800 text-white">
-        <Container className="py-6">
-          <div className="flex items-center justify-between">
-            <button
-              onClick={() => navigate('/snippets')}
-              className="flex items-center text-white hover:text-gray-300 transition-colors"
-            >
-              <FontAwesomeIcon icon={faArrowLeft} className="mr-2 h-4 w-4" />
-              <span>Back to Snippets</span>
-            </button>
-            <div className="flex items-center gap-4">
-              <button
-                onClick={clearChat}
-                className="flex items-center gap-2 px-3 py-1.5 text-sm text-white/80 hover:text-white hover:bg-white/10 rounded-lg transition-colors"
-              >
-                <FontAwesomeIcon icon={faTrash} className="h-4 w-4" />
-                Clear Chat
-              </button>
-            </div>
-          </div>
-        </Container>
+    <div className="flex flex-col h-[calc(100vh-120px)]">
+      <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center gap-3">
+          <FontAwesomeIcon icon={faRobot} className="text-2xl text-purple-600" />
+          <h1 className="text-2xl font-bold text-gray-800">AI Assistant</h1>
+          <span className="text-sm text-gray-500 bg-gray-100 px-3 py-1 rounded-full">
+            {mode === 'generate' ? 'Generate' : mode === 'explain' ? 'Explain' : 'Improve'}
+          </span>
+        </div>
+        <div className="flex gap-2">
+          <Button
+            variant="secondary"
+            size="sm"
+            onClick={handleClearChat}
+            className="text-red-600 hover:text-red-700"
+          >
+            <FontAwesomeIcon icon={faTrash} className="mr-1" />
+            Clear
+          </Button>
+        </div>
       </div>
 
-      <Container className="py-6">
-        <Card className="bg-white shadow-xl p-6 h-[calc(100vh-220px)] flex flex-col">
-          <div className="flex items-center gap-3 mb-4 pb-4 border-b border-gray-200">
-            <div className="w-10 h-10 bg-black rounded-lg flex items-center justify-center">
-              <FontAwesomeIcon icon={faRobot} className="h-5 w-5 text-white" />
-            </div>
-            <div>
-              <h2 className="text-lg font-semibold text-gray-900">AI Assistant</h2>
-              <p className="text-sm text-gray-500">Powered by CodeLlama 7B</p>
+      <div className="flex flex-wrap gap-3 mb-4">
+        <div className="flex gap-2">
+          <Button
+            size="sm"
+            variant={mode === 'generate' ? 'primary' : 'secondary'}
+            onClick={() => setMode('generate')}
+          >
+            <FontAwesomeIcon icon={faCode} className="mr-1" />
+            Generate
+          </Button>
+          <Button
+            size="sm"
+            variant={mode === 'explain' ? 'primary' : 'secondary'}
+            onClick={() => setMode('explain')}
+          >
+            <FontAwesomeIcon icon={faLightbulb} className="mr-1" />
+            Explain
+          </Button>
+          <Button
+            size="sm"
+            variant={mode === 'improve' ? 'primary' : 'secondary'}
+            onClick={() => setMode('improve')}
+          >
+            Improve
+          </Button>
+        </div>
+
+        {mode === 'generate' && (
+          <select
+            value={selectedLanguage}
+            onChange={(e) => setSelectedLanguage(e.target.value)}
+            className="px-3 py-1 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
+          >
+            {languages.map(lang => (
+              <option key={lang} value={lang}>{lang}</option>
+            ))}
+          </select>
+        )}
+      </div>
+
+      <div className="flex-1 overflow-y-auto space-y-4 mb-4 bg-gray-50 rounded-lg p-4">
+        {messages.map(message => (
+          <div
+            key={message.id}
+            className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
+          >
+            <div
+              className={`max-w-[80%] rounded-lg p-3 ${
+                message.role === 'user'
+                  ? 'bg-purple-600 text-white'
+                  : message.type === 'code'
+                  ? 'bg-gray-800 text-white font-mono text-sm relative group'
+                  : 'bg-white border border-gray-200 text-gray-800'
+              }`}
+            >
+              {message.type === 'code' ? (
+                <>
+                  <pre className="whitespace-pre-wrap break-words">
+                    <code>{message.content}</code>
+                  </pre>
+                  <button
+                    onClick={() => handleCopy(message.content)}
+                    className="absolute top-2 right-2 text-gray-400 hover:text-white opacity-0 group-hover:opacity-100 transition-opacity"
+                  >
+                    <FontAwesomeIcon icon={faCopy} />
+                  </button>
+                </>
+              ) : (
+                <p className="whitespace-pre-wrap break-words">{message.content}</p>
+              )}
             </div>
           </div>
-
-          <div className="flex-1 overflow-y-auto space-y-4 mb-4 pr-2">
-            {messages.map((message) => {
-              const isUser = message.role === 'user';
-              const isSystem = message.role === 'system';
-              
-              if (isSystem && message.id === '1') {
-                return (
-                  <div key={message.id} className="flex justify-center">
-                    <div className="bg-gray-100 text-gray-600 px-4 py-2 rounded-lg text-sm max-w-2xl text-center">
-                      {message.content}
-                    </div>
-                  </div>
-                );
-              }
-
-              return (
-                <div
-                  key={message.id}
-                  className={`flex items-start gap-3 ${isUser ? 'flex-row-reverse' : ''}`}
-                >
-                  <div className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${isUser ? 'bg-gray-200' : 'bg-black'}`}>
-                    <FontAwesomeIcon 
-                      icon={isUser ? faUser : faRobot} 
-                      className={`h-4 w-4 ${isUser ? 'text-gray-600' : 'text-white'}`}
-                    />
-                  </div>
-                  <div className={`max-w-3xl ${isUser ? 'items-end' : 'items-start'}`}>
-                    <div className={`rounded-lg px-4 py-3 ${
-                      isUser 
-                        ? 'bg-black text-white' 
-                        : 'bg-gray-100 text-gray-800'
-                    }`}>
-                      <div className="whitespace-pre-wrap text-sm">
-                        {message.content}
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-2 mt-1">
-                      <span className="text-xs text-gray-400">
-                        {formatTime(message.timestamp)}
-                      </span>
-                      {!isUser && (
-                        <button
-                          onClick={() => copyToClipboard(message.content)}
-                          className="text-xs text-gray-400 hover:text-gray-600 transition-colors"
-                        >
-                          <FontAwesomeIcon icon={faCopy} className="h-3 w-3" />
-                        </button>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
-            
-            {isSending && (
-              <div className="flex items-center gap-3">
-                <div className="w-8 h-8 bg-black rounded-lg flex items-center justify-center">
-                  <FontAwesomeIcon icon={faRobot} className="h-4 w-4 text-white animate-pulse" />
-                </div>
-                <div className="bg-gray-100 rounded-lg px-4 py-3">
-                  <div className="flex gap-1">
-                    <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></span>
-                    <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></span>
-                    <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></span>
-                  </div>
-                </div>
-              </div>
-            )}
-            
-            <div ref={messagesEndRef} />
-          </div>
-
-          <div className="border-t border-gray-200 pt-4">
-            <div className="flex gap-3">
-              <textarea
-                ref={inputRef}
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-                onKeyDown={handleKeyDown}
-                placeholder="Ask me anything about code, snippets, or programming..."
-                className="flex-1 px-4 py-2 border border-gray-300 rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-gray-500 focus:border-transparent text-sm min-h-[52px] max-h-[150px]"
-                rows={2}
-                disabled={isSending}
-              />
-              <Button
-                onClick={handleSend}
-                disabled={!input.trim() || isSending}
-                className={`h-[52px] w-[52px] flex items-center justify-center ${
-                  isSending ? 'opacity-50 cursor-not-allowed' : ''
-                }`}
-                style={{ padding: '0' }}
-              >
-                {isSending ? (
-                  <FontAwesomeIcon icon={faSpinner} className="h-5 w-5 animate-spin" />
-                ) : (
-                  <FontAwesomeIcon icon={faPaperPlane} className="h-5 w-5" />
-                )}
-              </Button>
-            </div>
-            <div className="flex items-center justify-between mt-2">
-              <span className="text-xs text-gray-400">
-                Press Enter to send, Shift+Enter for new line
-              </span>
-              <span className="text-xs text-gray-400">
-                {messages.filter(m => m.role === 'user').length} messages
-              </span>
+        ))}
+        {loading && (
+          <div className="flex justify-start">
+            <div className="bg-white border border-gray-200 rounded-lg p-3">
+              <FontAwesomeIcon icon={faSpinner} className="animate-spin text-purple-600 mr-2" />
+              <span className="text-gray-600">Thinking...</span>
             </div>
           </div>
-        </Card>
-      </Container>
+        )}
+      </div>
+
+      <form onSubmit={handleSubmit} className="flex gap-2">
+        <Input
+          value={input}
+          onChange={(e) => setInput(e.target.value)}
+          placeholder={
+            mode === 'generate'
+              ? 'Describe what you want to generate...'
+              : mode === 'explain'
+              ? 'Paste code to explain...'
+              : 'Paste code to improve...'
+          }
+          className="flex-1"
+          disabled={loading}
+        />
+        <Button
+          type="submit"
+          disabled={loading || !input.trim()}
+          className="bg-purple-600 hover:bg-purple-700"
+        >
+          <FontAwesomeIcon icon={faPaperPlane} />
+        </Button>
+      </form>
     </div>
   );
 };

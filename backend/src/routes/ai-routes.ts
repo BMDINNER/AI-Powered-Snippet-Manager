@@ -1,19 +1,12 @@
 import { Router } from 'express';
-import { 
-  generateSnippet, 
-  explainCode, 
-  optimizeCode,
-  chat,
-  getAIStatus
-} from '../controllers/ai-controller';
-import { authenticate } from '../middleware/auth';
+import { authenticate } from '../middleware/auth.js';
+import * as aiController from '../controllers/ai-controller';
 
 const router = Router();
 
-router.post('/generate-snippet', authenticate, generateSnippet);
-router.post('/explain-code', authenticate, explainCode);
-router.post('/optimize-code', authenticate, optimizeCode);
-router.post('/chat', authenticate, chat);
-router.get('/status', authenticate, getAIStatus);
+router.post('/generate', authenticate, aiController.generateSnippet);
+router.post('/improve', authenticate, aiController.improveSnippet);
+router.post('/explain', authenticate, aiController.explainCode);
+router.get('/health', aiController.checkHealth);
 
 export default router;
