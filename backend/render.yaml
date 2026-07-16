@@ -1,0 +1,30 @@
+services:
+  - type: web
+    name: snippet-backend
+    runtime: docker
+    repo: https://github.com/BMDINNER/AI-Powered-Snippet-Manager
+    branch: main
+    rootDir: backend
+    dockerfilePath: backend/Dockerfile
+    dockerContext: backend
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 3002
+      - key: DATABASE_URL
+        sync: false
+      - key: PROJECT_ID
+        sync: false
+      - key: API_KEY
+        sync: false
+      - key: AUTH_SERVICE_URL
+        sync: false
+      - key: GROQ_API_KEY
+        sync: false
+      - key: GROQ_MODEL
+        value: llama-3.3-70b-versatile
+      - key: CORS_ORIGIN
+        sync: false
+      - key: CLIENT_URL
+        sync: false

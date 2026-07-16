@@ -1,0 +1,18 @@
+services:
+  - type: web
+    name: snippet-frontend
+    runtime: docker
+    repo: https://github.com/BMDINNER/AI-Powered-Snippet-Manager
+    branch: main
+    rootDir: frontend
+    dockerfilePath: frontend/Dockerfile
+    dockerContext: frontend
+    build:
+      args:
+        - VITE_API_URL=https://snippet-backend.onrender.com
+        - VITE_AUTH_URL=https://auth-service.onrender.com
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 3000
