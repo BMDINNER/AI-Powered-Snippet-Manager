@@ -55,8 +55,6 @@ const App: React.FC = () => {
     <BrowserRouter>
       <LogRegAuthProvider
         authUrl={authUrl}
-        apiKey="PROXIED_BY_BACKEND"
-        projectId="PROXIED_BY_BACKEND"
         loginEndpoint="/auth/login"
         registerEndpoint="/auth/register"
         logoutEndpoint="/auth/logout"
