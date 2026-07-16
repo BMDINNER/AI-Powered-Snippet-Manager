@@ -1,6 +1,14 @@
-FROM ghcr.io/ggerganov/llama.cpp:full
+FROM ghcr.io/ggml-org/llama.cpp:server
 
-RUN wget -O /models/tinyllama.gguf \
-    https://huggingface.co/TheBloke/TinyLlama-1.1B-GGUF/resolve/main/tinyllama-1.1b.Q4_K_M.gguf
+USER root
 
-CMD ["llama-server", "-m", "/models/tinyllama.gguf", "--host", "0.0.0.0", "--port", "8080"]
+RUN apt-get update && apt-get install -y curl && rm -rf /var/lib/apt/lists/*
+
+RUN mkdir -p /models && \
+    curl -L -o /models/llama3.2-3b-instruct-q4_K_M.gguf \
+    https://huggingface.co
+
+EXPOSE 8080
+
+ENTRYPOINT ["/app/llama-server"]
+CMD ["-m", "/models/llama3.2-3b-instruct-q4_K_M.gguf", "--host", "0.0.0.0", "--port", "8080"]
