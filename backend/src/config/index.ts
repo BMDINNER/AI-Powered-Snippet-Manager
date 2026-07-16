@@ -2,7 +2,7 @@ import dotenv from 'dotenv';
 
 dotenv.config();
 
-const requiredEnvVars = ['DATABASE_URL', 'GROQ_API_KEY', 'PROJECT_ID', 'API_KEY'];
+const requiredEnvVars = ['DATABASE_URL', 'GROQ_API_KEY', 'PROJECT_ID', 'API_KEY', 'AUTH_SERVICE_URL'];
 
 for (const envVar of requiredEnvVars) {
   if (!process.env[envVar]) {
