@@ -32,7 +32,10 @@ export const register = async (req: Request, res: Response) => {
     
     const response = await axios.post(
       `${config.authServiceUrl}/auth/project/register`,
-      { email, password, username, projectId: config.projectId },
+      { email, 
+        password,
+        username,
+        projectId: config.projectId },
       { headers: getAuthHeaders() }
     );
     
