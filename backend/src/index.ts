@@ -15,7 +15,7 @@ const port = config.port;
 const allowedOrigins = [
   'http://localhost:3000',
   'http://localhost:3005',
-  'https://snippet-frontend-kyvg.onrender.com',
+  'https://snippet-frontend-ujc2.onrender.com',
   config.corsOrigin
 ].filter(Boolean);
 
