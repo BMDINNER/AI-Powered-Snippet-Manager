@@ -22,6 +22,8 @@ import {
 } from '@fortawesome/free-solid-svg-icons';
 import toast from 'react-hot-toast';
 
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3002';
+
 export const ProfilePage: React.FC = () => {
   const { user, logout } = useAuth();
   const { snippets, fetchSnippets } = useSnippets();
@@ -82,7 +84,7 @@ export const ProfilePage: React.FC = () => {
     setLoading(true);
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:3002/auth/email', {
+      const response = await fetch(`${API_URL}/auth/email`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -113,53 +115,53 @@ export const ProfilePage: React.FC = () => {
   };
 
   const handleChangePassword = async () => {
-  if (!currentPassword || !newPassword || !confirmNewPassword) {
-    toast.error('Please fill in all fields');
-    return;
-  }
-
-  if (newPassword.length < 6) {
-    toast.error('New password must be at least 6 characters');
-    return;
-  }
-
-  if (newPassword !== confirmNewPassword) {
-    toast.error('Passwords do not match');
-    return;
-  }
-
-  setLoading(true);
-  try {
-    const token = localStorage.getItem('token');
-    const response = await fetch('http://localhost:3002/auth/change-password', {
-      method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`
-      },
-      body: JSON.stringify({ currentPassword, newPassword })
-    });
-
-    const data = await response.json();
-    
-    if (data.success) {
-      toast.success('Password changed successfully. Please log in again with your new password.');
-      
-      localStorage.removeItem('token');
-      localStorage.removeItem('refreshToken');
-      localStorage.removeItem('userData');
-      
-      await logout();
-      navigate('/login');
-    } else {
-      toast.error(data.message || 'Failed to change password');
+    if (!currentPassword || !newPassword || !confirmNewPassword) {
+      toast.error('Please fill in all fields');
+      return;
     }
-  } catch (error: any) {
-    toast.error(error.message || 'Failed to change password');
-  } finally {
-    setLoading(false);
-  }
-};
+
+    if (newPassword.length < 6) {
+      toast.error('New password must be at least 6 characters');
+      return;
+    }
+
+    if (newPassword !== confirmNewPassword) {
+      toast.error('Passwords do not match');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch(`${API_URL}/auth/change-password`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ currentPassword, newPassword })
+      });
+
+      const data = await response.json();
+      
+      if (data.success) {
+        toast.success('Password changed successfully. Please log in again with your new password.');
+        
+        localStorage.removeItem('token');
+        localStorage.removeItem('refreshToken');
+        localStorage.removeItem('userData');
+        
+        await logout();
+        navigate('/login');
+      } else {
+        toast.error(data.message || 'Failed to change password');
+      }
+    } catch (error: any) {
+      toast.error(error.message || 'Failed to change password');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const formatDate = (date: string) => {
     return new Date(date).toLocaleDateString('en-US', {

@@ -49,10 +49,12 @@ const AppContent: React.FC = () => {
 };
 
 const App: React.FC = () => {
+  const authUrl = import.meta.env.VITE_AUTH_URL || 'http://localhost:3002';
+
   return (
     <BrowserRouter>
       <LogRegAuthProvider
-        authUrl="http://localhost:3002"
+        authUrl={authUrl}
         apiKey=""
         projectId=""
         loginEndpoint="/auth/login"
