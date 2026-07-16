@@ -1,4 +1,4 @@
-import { PaginationParams } from "./api-types";
+import { PaginationParams } from "./api-types.js";
 
 export interface Snippet {
   id: string;

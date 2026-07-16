@@ -1,6 +1,6 @@
 import { Router } from 'express';
-import { snippetController } from '../controllers/snippet-controller';
-import { authenticate, optionalAuth } from '../middleware/auth';
+import { snippetController } from '../controllers/snippet-controller.js';
+import { authenticate, optionalAuth } from '../middleware/auth.js';
 
 const router = Router();
 const controller = snippetController;

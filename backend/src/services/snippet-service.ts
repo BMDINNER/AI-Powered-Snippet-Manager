@@ -1,10 +1,10 @@
-import { prisma } from '../config/database';
+import { prisma } from '../config/database.js';
 import { 
   Snippet, 
   CreateSnippetInput, 
   UpdateSnippetInput, 
   SnippetQuery 
-} from '../models/snippet-model';
+} from '../models/snippet-model.js';
 
 export class SnippetService {
   async createSnippet(data: CreateSnippetInput): Promise<Snippet> {
