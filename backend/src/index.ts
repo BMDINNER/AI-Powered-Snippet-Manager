@@ -12,7 +12,7 @@ const port = config.port;
 const allowedOrigins = [
   'http://localhost:3000',
   'http://localhost:3005',
-  'https://snippet-frontend.onrender.com',
+  'https://snippet-frontend-kyvg.onrender.com',
   config.corsOrigin
 ].filter(Boolean);
 
@@ -23,7 +23,7 @@ app.use(cors({
       callback(null, true);
     } else {
       console.log('Blocked origin:', origin);
-      callback(new Error('Not allowed by CORS'));
+      callback(new Error(`Origin ${origin} not allowed by CORS`));
     }
   },
   credentials: true,

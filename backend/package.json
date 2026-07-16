@@ -5,7 +5,6 @@
   "description": "Backend for AI-powered code snippet manager",
   "main": "dist/index.js",
   "scripts": {
-    "dev": "nodemon src/index.ts",
     "build": "tsc",
     "start": "node dist/index.js",
     "start:prod": "node dist/index.js",
