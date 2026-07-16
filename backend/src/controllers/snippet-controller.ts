@@ -1,8 +1,8 @@
 import { Response, NextFunction } from 'express';
-import { snippetService } from '../services/snippet-service';
-import { SnippetQuery } from '../models/snippet-model';
-import { ApiResponse } from '../types/api-types';
-import { AuthRequest } from '../middleware/auth';
+import { snippetService } from '../services/snippet-service.js';
+import { SnippetQuery } from '../models/snippet-model.js';
+import { ApiResponse } from '../types/api-types.js';
+import { AuthRequest } from '../middleware/auth.js';
 
 export class SnippetController {
   async createSnippet(req: AuthRequest, res: Response, next: NextFunction): Promise<void> {

@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
-import { ErrorResponse } from '../types/api-types';
+import { ErrorResponse } from '../types/api-types.js';
 
 export default function errorHandler(
   error: Error,

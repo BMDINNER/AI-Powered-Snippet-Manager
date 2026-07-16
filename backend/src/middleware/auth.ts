@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import axios from 'axios';
-import { config } from '../config';
+import { config } from '../config/index.js';
 
 export interface AuthRequest extends Request {
   user?: {
