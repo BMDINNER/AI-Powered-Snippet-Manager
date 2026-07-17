@@ -16,9 +16,7 @@ export const useSnippets = () => {
   const fetchSnippets = useCallback(async (query?: SnippetQuery) => {
     setLoading(true);
     try {
-      console.log('fetchSnippets called with query:', query);
       const response = await snippetService.getSnippets(query);
-      console.log('fetchSnippets response:', response);
       setSnippets(response.snippets);
       setPagination({
         page: response.page,
@@ -37,10 +35,7 @@ export const useSnippets = () => {
   const getSnippet = useCallback(async (id: string): Promise<Snippet> => {
     setLoading(true);
     try {
-      console.log('getSnippet called with id:', id);
       const snippet = await snippetService.getSnippet(id);
-      console.log('getSnippet returned:', snippet);
-      console.log('Snippet code length:', snippet?.code?.length);
       return snippet;
     } catch (error: any) {
       console.error('Failed to fetch snippet:', error);
@@ -54,11 +49,7 @@ export const useSnippets = () => {
   const createSnippet = useCallback(async (data: any) => {
     setLoading(true);
     try {
-      console.log('createSnippet called with data:', data);
-      console.log('Code length being saved:', data.code?.length);
       const snippet = await snippetService.createSnippet(data);
-      console.log('createSnippet response:', snippet);
-      console.log('Saved snippet code length:', snippet?.code?.length);
       toast.success('Snippet created successfully');
       return snippet;
     } catch (error: any) {

@@ -11,7 +11,5 @@ router.get('/verify', authController.verifyToken);
 
 router.put('/email', authController.updateEmail);
 router.put('/change-password', authController.changePassword);
-router.post('/forgot-password', authController.forgotPassword);
-router.post('/reset-password', authController.resetPassword);
 
 export default router;

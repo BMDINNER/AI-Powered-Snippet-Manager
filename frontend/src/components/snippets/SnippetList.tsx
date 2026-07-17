@@ -40,12 +40,6 @@ export const SnippetList: React.FC = () => {
   }, [searchParams]);
 
   useEffect(() => {
-    console.log('Fetching snippets with filters:', {
-      search: debouncedSearch,
-      language: languageFilter,
-      tags: selectedTags
-    });
-    
     fetchSnippets({
       search: debouncedSearch || undefined,
       language: languageFilter || undefined,
@@ -75,7 +69,6 @@ export const SnippetList: React.FC = () => {
   };
 
   const handleTagClick = (tag: string) => {
-    console.log('Tag clicked:', tag);
     if (!selectedTags.includes(tag)) {
       const newTags = [...selectedTags, tag];
       setSelectedTags(newTags);

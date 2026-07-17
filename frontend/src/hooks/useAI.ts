@@ -12,11 +12,8 @@ export const useAI = () => {
     setError(null);
     
     try {
-      console.log('useAI.generateSnippet called with:', { prompt, language });
-      
       const result = await aiService.generateSnippet({ prompt, language });
       
-      console.log('useAI.generateSnippet raw result:', result);
       
       if (!result || !result.code) {
         console.error('No code returned from API:', result);
@@ -38,8 +35,6 @@ export const useAI = () => {
         userId: ''
       };
       
-      console.log('Final snippet data being returned:', snippetData);
-      console.log('Code length in final data:', snippetData.code.length);
       
       toast.success('Snippet generated successfully');
       return snippetData;

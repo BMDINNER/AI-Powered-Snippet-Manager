@@ -20,8 +20,6 @@ const getAuthHeaders = () => ({
 export const authenticate = async (req: Request, res: Response, next: NextFunction) => {
   const authHeader = req.headers.authorization;
   
-  console.log('=== AUTHENTICATE MIDDLEWARE ===');
-  console.log('Auth header present:', !!authHeader);
   
   if (!authHeader) {
     return res.status(401).json({ message: 'No token provided' });
@@ -39,8 +37,6 @@ export const authenticate = async (req: Request, res: Response, next: NextFuncti
     return res.status(401).json({ message: 'Token malformatted' });
   }
 
-  console.log('Token:', token.substring(0, 30) + '...');
-  console.log('Auth Service URL:', `${config.authServiceUrl}/auth/token/verify`);
 
   try {
     const response = await axios.get(
@@ -53,7 +49,6 @@ export const authenticate = async (req: Request, res: Response, next: NextFuncti
       }
     );
 
-    console.log('Auth service response:', response.data);
     
     const { user } = response.data;
     

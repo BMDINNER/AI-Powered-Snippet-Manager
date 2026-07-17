@@ -8,13 +8,6 @@ import {
 
 export class SnippetService {
   async createSnippet(data: CreateSnippetInput): Promise<Snippet> {
-    console.log('SERVICE CREATE SNIPPET:', {
-      title: data.title,
-      codeLength: data.code?.length,
-      language: data.language,
-      tags: data.tags
-    });
-
     const snippet = await prisma.snippet.create({
       data: {
         title: data.title,
@@ -29,7 +22,6 @@ export class SnippetService {
       },
     });
     
-    console.log('SERVICE SNIPPET CREATED, tags:', snippet.tags);
     
     return {
       id: snippet.id,
@@ -103,7 +95,6 @@ export class SnippetService {
         { code: { contains: search, mode: 'insensitive' } },
         { tags: { hasSome: [search] } }
       ];
-      console.log('Searching for:', search);
     }
 
     if (language) {
@@ -111,7 +102,6 @@ export class SnippetService {
     }
 
     if (tags && tags.length > 0) {
-      console.log('Filtering by tags:', tags);
       where.tags = { hasSome: tags };
     }
 
@@ -119,7 +109,6 @@ export class SnippetService {
       where.category = category;
     }
 
-    console.log('Final where clause:', JSON.stringify(where, null, 2));
 
     const [snippets, total] = await Promise.all([
       prisma.snippet.findMany({
@@ -131,10 +120,6 @@ export class SnippetService {
       prisma.snippet.count({ where }),
     ]);
 
-    console.log(`Found ${snippets.length} snippets out of ${total} total`);
-    snippets.forEach(s => {
-      console.log(`Snippet "${s.title}" has tags:`, s.tags);
-    });
 
     const serializedSnippets = snippets.map(snippet => ({
       id: snippet.id,

@@ -58,11 +58,6 @@ app.get('/debug/config', (req, res) => {
     )
   });
 });
-app.get('/ping', (req, res) => {
-  console.log('Ping endpoint was hit!');
-  res.json({ message: 'pong', timestamp: new Date().toISOString() });
-});
-
 app.listen(port, () => {
   console.log(`Snippet manager backend running on port ${port}`);
 });
