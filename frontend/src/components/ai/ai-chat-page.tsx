@@ -7,7 +7,6 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { 
   faRobot, 
   faPaperPlane, 
-  faArrowLeft,
   faSpinner,
   faUser,
   faTrash,
@@ -80,94 +79,35 @@ export const AIChatPage: React.FC = () => {
 
     try {
       const token = localStorage.getItem('token');
-      let response;
-      let aiMessage: Message;
-
-      switch (mode) {
-        case 'generate':
-          response = await fetch(`${API_URL}/api/ai/generate`, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': `Bearer ${token}`
-            },
-            body: JSON.stringify({
-              prompt: input,
-              language: selectedLanguage
-            })
-          });
-          
-          const generateData = await response.json();
-          if (generateData.success) {
-            aiMessage = {
-              id: Date.now().toString(),
-              role: 'assistant',
-              content: generateData.data.code,
-              type: 'code'
-            };
-          } else {
-            throw new Error(generateData.message);
-          }
-          break;
-
-        case 'explain':
-          response = await fetch(`${API_URL}/api/ai/explain`, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': `Bearer ${token}`
-            },
-            body: JSON.stringify({ 
-              code: input,
-              language: selectedLanguage
-            })
-          });
-          
-          const explainData = await response.json();
-          if (explainData.success) {
-            aiMessage = {
-              id: Date.now().toString(),
-              role: 'assistant',
-              content: explainData.data.explanation,
-              type: 'explanation'
-            };
-          } else {
-            throw new Error(explainData.message);
-          }
-          break;
-
-        case 'improve':
-          response = await fetch(`${API_URL}/api/ai/improve`, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': `Bearer ${token}`
-            },
-            body: JSON.stringify({
-              code: input,
-              instructions: 'Improve the code quality and readability',
-              language: selectedLanguage
-            })
-          });
-          
-          const improveData = await response.json();
-          if (improveData.success) {
-            aiMessage = {
-              id: Date.now().toString(),
-              role: 'assistant',
-              content: improveData.data.code,
-              type: 'code'
-            };
-          } else {
-            throw new Error(improveData.message);
-          }
-          break;
-
-        default:
-          throw new Error('Invalid mode');
+      
+      const response = await fetch(`${API_URL}/api/ai/chat`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          messages: [
+            ...messages.map(m => ({ role: m.role, content: m.content })),
+            { role: 'user', content: input }
+          ]
+        })
+      });
+      
+      const data = await response.json();
+      console.log('AI Chat Response:', data);
+      
+      if (data.success) {
+        const aiMessage: Message = {
+          id: Date.now().toString(),
+          role: 'assistant',
+          content: data.data.response || 'I didn\'t understand that. Could you please rephrase?',
+          type: 'general'
+        };
+        setMessages(prev => [...prev, aiMessage]);
+      } else {
+        throw new Error(data.message || 'Failed to get AI response');
       }
-
-      setMessages(prev => [...prev, aiMessage]);
     } catch (error: any) {
       console.error('AI Error:', error);
       
