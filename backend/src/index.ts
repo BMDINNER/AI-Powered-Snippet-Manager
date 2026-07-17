@@ -1,28 +1,68 @@
 import dotenv from 'dotenv';
-import path from 'path';
+dotenv.config();
 
-if (process.env.NODE_ENV !== 'production') {
-  dotenv.config({ path: path.resolve(process.cwd(), '.env') });
-}
+import express from 'express';
+import cors from 'cors';
+import { config } from './config/index.js';
+import authRoutes from './routes/auth-routes.js';
+import snippetRoutes from './routes/snippet-routes.js';
+import aiRoutes from './routes/ai-routes.js';
+import { authenticate } from './middleware/auth.js';
 
-const requiredEnvVars = ['DATABASE_URL', 'GROQ_API_KEY', 'PROJECT_ID', 'API_KEY', 'AUTH_SERVICE_URL'];
+const app = express();
+const port = config.port;
 
-for (const envVar of requiredEnvVars) {
-  if (!process.env[envVar]) {
-    console.error(`FATAL ERROR: ${envVar} is not set in environment`);
-    process.exit(1);
-  }
-}
+const allowedOrigins = [
+  'http://localhost:3000',
+  'http://localhost:3005',
+  'https://snippet-frontend-ujc2.onrender.com',
+  config.corsOrigin
+].filter(Boolean);
 
-export const config = {
-  port: parseInt(process.env.PORT || '3002'),
-  nodeEnv: process.env.NODE_ENV || 'development',
-  clientUrl: process.env.CLIENT_URL || 'http://localhost:3000',
-  databaseUrl: process.env.DATABASE_URL as string,
-  authServiceUrl: process.env.AUTH_SERVICE_URL || 'http://localhost:3001',
-  projectId: process.env.PROJECT_ID || '',
-  apiKey: process.env.API_KEY || '',
-  groqApiKey: process.env.GROQ_API_KEY || '',
-  groqModel: process.env.GROQ_MODEL || 'llama-3.3-70b-versatile',
-  corsOrigin: process.env.CORS_ORIGIN || 'http://localhost:3000',
-};
+app.use(cors({
+  origin: function (origin, callback) {
+    if (!origin) return callback(null, true);
+    if (allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error(`Origin ${origin} not allowed by CORS`));
+    }
+  },
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'Accept', 'x-api-key', 'x-project-id']
+}));
+
+app.use(express.json());
+
+app.use('/auth', authRoutes);
+app.use('/api/snippets', authenticate, snippetRoutes);
+app.use('/api/ai', authenticate, aiRoutes);
+
+app.get('/health', (req, res) => {
+  res.json({ status: 'ok', timestamp: new Date().toISOString() });
+});
+
+app.get('/debug/config', (req, res) => {
+  res.json({
+    projectId: config.projectId || 'NOT SET',
+    apiKey: config.apiKey ? 'PRESENT' : 'NOT SET',
+    authServiceUrl: config.authServiceUrl,
+    nodeEnv: process.env.NODE_ENV,
+    hasProjectId: !!config.projectId,
+    hasApiKey: !!config.apiKey,
+    allKeys: Object.keys(process.env).filter(k => 
+      k.includes('PROJECT') || 
+      k.includes('API') || 
+      k.includes('AUTH')
+    )
+  });
+});
+app.get('/ping', (req, res) => {
+  console.log('Ping endpoint was hit!');
+  res.json({ message: 'pong', timestamp: new Date().toISOString() });
+});
+
+app.listen(port, () => {
+  console.log(`Snippet manager backend running on port ${port}`);
+});
