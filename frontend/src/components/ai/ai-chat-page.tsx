@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useAuth } from '@bmdinner/logreg';
 import { Button } from '../ui/Button';
 import { Input } from '../ui/Input';
+import { MarkdownRenderer } from '../ui/MarkdownRenderer';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { 
   faRobot, 
@@ -9,9 +10,7 @@ import {
   faSpinner,
   faUser,
   faTrash,
-  faCopy,
-  faCode,
-  faLightbulb
+  faCopy
 } from '@fortawesome/free-solid-svg-icons';
 import toast from 'react-hot-toast';
 
@@ -153,7 +152,6 @@ export const AIChatPage: React.FC = () => {
             variant={mode === 'generate' ? 'primary' : 'secondary'}
             onClick={() => setMode('generate')}
           >
-            <FontAwesomeIcon icon={faCode} className="mr-1" />
             Generate
           </Button>
           <Button
@@ -161,7 +159,6 @@ export const AIChatPage: React.FC = () => {
             variant={mode === 'explain' ? 'primary' : 'secondary'}
             onClick={() => setMode('explain')}
           >
-            <FontAwesomeIcon icon={faLightbulb} className="mr-1" />
             Explain
           </Button>
           <Button
@@ -193,35 +190,43 @@ export const AIChatPage: React.FC = () => {
             className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
           >
             <div
-              className={`max-w-[85%] rounded-lg p-3 ${
+              className={`max-w-[85%] rounded-lg p-4 ${
                 message.role === 'user'
                   ? 'bg-purple-600 text-white'
-                  : message.type === 'code'
-                  ? 'bg-gray-800 text-white font-mono text-sm relative group'
                   : 'bg-white border border-gray-200 text-gray-800'
               }`}
             >
-              {message.type === 'code' ? (
-                <>
-                  <pre className="whitespace-pre-wrap break-words">
-                    <code>{message.content}</code>
-                  </pre>
-                  <button
-                    onClick={() => handleCopy(message.content)}
-                    className="absolute top-2 right-2 text-gray-400 hover:text-white opacity-0 group-hover:opacity-100 transition-opacity"
-                  >
-                    <FontAwesomeIcon icon={faCopy} />
-                  </button>
-                </>
-              ) : (
+              <div className="flex items-center gap-2 mb-2">
+                <FontAwesomeIcon
+                  icon={message.role === 'user' ? faUser : faRobot}
+                  className={message.role === 'user' ? 'text-purple-200' : 'text-purple-600'}
+                />
+                <span className="text-sm font-medium">
+                  {message.role === 'user' ? 'You' : 'AI Assistant'}
+                </span>
+              </div>
+              
+              {message.role === 'user' ? (
                 <p className="whitespace-pre-wrap break-words">{message.content}</p>
+              ) : (
+                <MarkdownRenderer content={message.content} />
+              )}
+              
+              {message.role === 'assistant' && (
+                <button
+                  onClick={() => handleCopy(message.content)}
+                  className="mt-2 text-gray-400 hover:text-gray-600 transition-colors text-sm"
+                >
+                  <FontAwesomeIcon icon={faCopy} className="mr-1" />
+                  Copy
+                </button>
               )}
             </div>
           </div>
         ))}
         {loading && (
           <div className="flex justify-start">
-            <div className="bg-white border border-gray-200 rounded-lg p-3">
+            <div className="bg-white border border-gray-200 rounded-lg p-4">
               <FontAwesomeIcon icon={faSpinner} className="animate-spin text-purple-600 mr-2" />
               <span className="text-gray-600">Thinking...</span>
             </div>

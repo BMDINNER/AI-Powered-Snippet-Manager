@@ -4,6 +4,7 @@ import { useSnippets } from '../../hooks/useSnippets';
 import { useAI } from '../../hooks/useAI';
 import { Button } from '../ui/Button';
 import { Card } from '../ui/Card';
+import { MarkdownRenderer } from '../ui/MarkdownRenderer';
 import { LoadingSpinner } from '../ui/LoadingSpinner';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { 
@@ -114,56 +115,6 @@ export const SnippetDetail: React.FC = () => {
     } catch (error) {
       toast.error('Failed to optimize code');
     }
-  };
-
-  const highlightExplanation = (text: string): React.ReactNode => {
-    if (!text) return null;
-    
-    const keywords = [
-      'function', 'class', 'variable', 'parameter', 'return', 'loop',
-      'if', 'else', 'switch', 'case', 'break', 'continue', 'async',
-      'await', 'promise', 'callback', 'arrow', 'closure', 'hoisting',
-      'prototype', 'inheritance', 'module', 'export', 'import',
-      'try', 'catch', 'throw', 'error', 'debug', 'console',
-      'const', 'let', 'var', 'new', 'this', 'super', 'extends',
-      'implements', 'interface', 'type', 'enum', 'generator',
-      'iterator', 'map', 'filter', 'reduce', 'forEach', 'set',
-      'get', 'has', 'delete', 'clear', 'entries', 'keys', 'values'
-    ];
-    
-    let parts: React.ReactNode[] = [text];
-    
-    keywords.forEach(keyword => {
-      const regex = new RegExp(`\\b${keyword}\\b`, 'gi');
-      parts = parts.flatMap(part => {
-        if (typeof part === 'string') {
-          const splitParts = part.split(regex);
-          const result: React.ReactNode[] = [];
-          let matchIndex = 0;
-          
-          splitParts.forEach((sub, index) => {
-            if (index > 0) {
-              const matched = part.match(regex);
-              if (matched && matched[matchIndex]) {
-                result.push(
-                  <span key={`${keyword}-${matchIndex}`} className="bg-yellow-100 text-gray-800 px-0.5 rounded font-mono font-semibold">
-                    {matched[matchIndex]}
-                  </span>
-                );
-                matchIndex++;
-              }
-            }
-            if (sub) {
-              result.push(sub);
-            }
-          });
-          return result;
-        }
-        return part;
-      });
-    });
-    
-    return <span className="leading-relaxed">{parts}</span>;
   };
 
   const formatDate = (dateString: string): string => {
@@ -300,8 +251,8 @@ export const SnippetDetail: React.FC = () => {
               Close
             </Button>
           </div>
-          <div className="prose prose-sm max-w-none text-gray-700 whitespace-pre-wrap bg-gray-50 p-4 rounded-lg">
-            {highlightExplanation(explanation)}
+          <div className="prose prose-sm max-w-none text-gray-700 bg-gray-50 p-4 rounded-lg">
+            <MarkdownRenderer content={explanation} />
           </div>
         </Card>
       )}
