@@ -1,6 +1,24 @@
 import { Request, Response } from 'express';
 import { groqService } from '../services/groq-service.js';
 
+const stripCodeBlock = (code: string): string => {
+  if (!code) return '';
+  
+  let cleaned = code.trim();
+  
+  const codeBlockMatch = cleaned.match(/```(?:\w+)?\n([\s\S]*?)```/);
+  if (codeBlockMatch && codeBlockMatch[1]) {
+    cleaned = codeBlockMatch[1].trim();
+  }
+  
+  const inlineCodeMatch = cleaned.match(/`([^`]+)`/);
+  if (inlineCodeMatch && inlineCodeMatch[1] && !cleaned.includes('\n')) {
+    cleaned = inlineCodeMatch[1].trim();
+  }
+  
+  return cleaned;
+};
+
 export const generateSnippet = async (req: Request, res: Response) => {
   try {
     const { prompt, language } = req.body;
@@ -12,26 +30,23 @@ export const generateSnippet = async (req: Request, res: Response) => {
       });
     }
 
-    const codePrompt = `Generate a code snippet in ${language} for the following description:
-${prompt}
-
-Provide only the code without any explanations or markdown formatting.`;
-
-    const code = await groqService.generateCode(codePrompt, language);
+    let code = await groqService.generateCode(prompt, language);
+    code = stripCodeBlock(code);
 
     const titlePrompt = `Generate a short, descriptive title (max 5 words) for a code snippet that does this: ${prompt}. Return ONLY the title, nothing else.`;
-    const title = await groqService.generateCode(titlePrompt, 'text');
+    let title = await groqService.generateText(titlePrompt);
+    title = title.replace(/^["']|["']$/g, '').trim();
 
     const tagsPrompt = `Generate 3-5 relevant tags (single words, comma-separated) for a code snippet that does this: ${prompt}. Return ONLY the tags, nothing else. Example format: react, api, hooks`;
-    const tagsResponse = await groqService.generateCode(tagsPrompt, 'text');
-    const tags = tagsResponse.split(',').map(t => t.trim()).filter(Boolean);
+    const tagsResponse = await groqService.generateText(tagsPrompt);
+    const tags = tagsResponse.split(',').map(t => t.trim().replace(/^["']|["']$/g, '')).filter(Boolean);
 
     res.json({
       success: true,
       data: {
         code,
         language,
-        title: title.trim() || prompt.split(' ').slice(0, 5).join(' ') + '...',
+        title: title || prompt.split(' ').slice(0, 5).join(' ') + '...',
         description: prompt,
         tags: tags.length > 0 ? tags : ['code', 'snippet']
       }
@@ -56,7 +71,8 @@ export const improveSnippet = async (req: Request, res: Response) => {
       });
     }
 
-    const improvedCode = await groqService.optimizeCode(code, 'code');
+    let improvedCode = await groqService.optimizeCode(code, 'code');
+    improvedCode = stripCodeBlock(improvedCode);
 
     res.json({
       success: true,
