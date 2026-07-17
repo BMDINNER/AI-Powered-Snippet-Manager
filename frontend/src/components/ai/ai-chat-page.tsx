@@ -1,7 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useAuth } from '@bmdinner/logreg';
-import { Button } from '../ui/Button';
-import { Input } from '../ui/Input';
 import { MarkdownRenderer } from '../ui/MarkdownRenderer';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { 
@@ -33,6 +31,11 @@ export const AIChatPage: React.FC = () => {
   ]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages]);
 
   const handleCopy = (text: string) => {
     navigator.clipboard.writeText(text);
@@ -111,96 +114,197 @@ export const AIChatPage: React.FC = () => {
   };
 
   return (
-    <div className="flex flex-col h-[calc(100vh-80px)] w-full">
-      <div className="flex items-center justify-between mb-4 px-4">
-        <div className="flex items-center gap-3">
-          <FontAwesomeIcon icon={faRobot} className="text-2xl text-purple-600" />
-          <h1 className="text-2xl font-bold text-gray-800">AI Assistant</h1>
+    <div style={{
+      display: 'flex',
+      flexDirection: 'column',
+      height: 'calc(100vh - 80px)',
+      width: '100%',
+      maxWidth: '100%',
+      padding: '0 16px'
+    }}>
+      <div style={{
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        padding: '12px 0',
+        flexShrink: 0
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <FontAwesomeIcon icon={faRobot} style={{ fontSize: '24px', color: '#7c3aed' }} />
+          <h1 style={{ fontSize: '24px', fontWeight: 'bold', color: '#1f2937' }}>AI Assistant</h1>
         </div>
-        <Button
-          variant="secondary"
-          size="sm"
+        <button
           onClick={handleClearChat}
-          className="text-red-600 hover:text-red-700"
+          style={{
+            padding: '6px 16px',
+            fontSize: '14px',
+            color: '#dc2626',
+            background: 'transparent',
+            border: 'none',
+            borderRadius: '8px',
+            cursor: 'pointer'
+          }}
+          onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#fef2f2'}
+          onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
         >
-          <FontAwesomeIcon icon={faTrash} className="mr-1" />
+          <FontAwesomeIcon icon={faTrash} style={{ marginRight: '4px' }} />
           Clear Chat
-        </Button>
+        </button>
       </div>
 
-      <div className="flex-1 overflow-y-auto space-y-4 mb-4 bg-gray-50 rounded-lg p-6 w-full">
+      <div style={{
+        flex: 1,
+        overflowY: 'auto',
+        marginBottom: '16px',
+        backgroundColor: '#f9fafb',
+        borderRadius: '12px',
+        padding: '20px',
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '16px'
+      }}>
         {messages.length === 0 ? (
-          <div className="flex flex-col items-center justify-center h-full text-gray-400">
-            <FontAwesomeIcon icon={faRobot} className="text-6xl mb-4" />
-            <p className="text-lg">Start a conversation with the AI assistant</p>
+          <div style={{
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+            height: '100%',
+            color: '#9ca3af'
+          }}>
+            <FontAwesomeIcon icon={faRobot} style={{ fontSize: '48px', marginBottom: '16px' }} />
+            <p style={{ fontSize: '18px' }}>Start a conversation with the AI assistant</p>
           </div>
         ) : (
-          messages.map(message => (
-            <div
-              key={message.id}
-              className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'} w-full`}
-            >
+          <>
+            {messages.map(message => (
               <div
-                className={`rounded-lg p-4 ${
-                  message.role === 'user'
-                    ? 'bg-purple-600 text-white max-w-[80%]'
-                    : 'bg-white border border-gray-200 text-gray-800 w-full'
-                }`}
+                key={message.id}
+                style={{
+                  display: 'flex',
+                  justifyContent: message.role === 'user' ? 'flex-end' : 'flex-start',
+                  width: '100%'
+                }}
               >
-                <div className="flex items-center gap-2 mb-2">
-                  <FontAwesomeIcon
-                    icon={message.role === 'user' ? faUser : faRobot}
-                    className={message.role === 'user' ? 'text-purple-200' : 'text-purple-600'}
-                  />
-                  <span className="text-sm font-medium">
-                    {message.role === 'user' ? 'You' : 'AI Assistant'}
-                  </span>
+                <div
+                  style={{
+                    maxWidth: message.role === 'user' ? '80%' : '100%',
+                    padding: '16px',
+                    borderRadius: '12px',
+                    backgroundColor: message.role === 'user' ? '#7c3aed' : '#ffffff',
+                    color: message.role === 'user' ? '#ffffff' : '#1f2937',
+                    border: message.role === 'assistant' ? '1px solid #e5e7eb' : 'none',
+                    width: message.role === 'assistant' ? '100%' : 'auto'
+                  }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
+                    <FontAwesomeIcon
+                      icon={message.role === 'user' ? faUser : faRobot}
+                      style={{ color: message.role === 'user' ? '#c4b5fd' : '#7c3aed' }}
+                    />
+                    <span style={{ fontSize: '14px', fontWeight: '500' }}>
+                      {message.role === 'user' ? 'You' : 'AI Assistant'}
+                    </span>
+                  </div>
+                  
+                  {message.role === 'user' ? (
+                    <p style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word', margin: 0 }}>
+                      {message.content}
+                    </p>
+                  ) : (
+                    <MarkdownRenderer content={message.content} />
+                  )}
+                  
+                  {message.role === 'assistant' && (
+                    <button
+                      onClick={() => handleCopy(message.content)}
+                      style={{
+                        marginTop: '8px',
+                        fontSize: '14px',
+                        color: '#9ca3af',
+                        background: 'transparent',
+                        border: 'none',
+                        cursor: 'pointer',
+                        padding: '4px 0'
+                      }}
+                      onMouseEnter={(e) => e.currentTarget.style.color = '#4b5563'}
+                      onMouseLeave={(e) => e.currentTarget.style.color = '#9ca3af'}
+                    >
+                      <FontAwesomeIcon icon={faCopy} style={{ marginRight: '4px' }} />
+                      Copy
+                    </button>
+                  )}
                 </div>
-                
-                {message.role === 'user' ? (
-                  <p className="whitespace-pre-wrap break-words">{message.content}</p>
-                ) : (
-                  <MarkdownRenderer content={message.content} className="w-full" />
-                )}
-                
-                {message.role === 'assistant' && (
-                  <button
-                    onClick={() => handleCopy(message.content)}
-                    className="mt-2 text-gray-400 hover:text-gray-600 transition-colors text-sm"
-                  >
-                    <FontAwesomeIcon icon={faCopy} className="mr-1" />
-                    Copy
-                  </button>
-                )}
               </div>
-            </div>
-          ))
-        )}
-        {loading && (
-          <div className="flex justify-start w-full">
-            <div className="bg-white border border-gray-200 rounded-lg p-4">
-              <FontAwesomeIcon icon={faSpinner} className="animate-spin text-purple-600 mr-2" />
-              <span className="text-gray-600">Thinking...</span>
-            </div>
-          </div>
+            ))}
+            {loading && (
+              <div style={{ display: 'flex', justifyContent: 'flex-start', width: '100%' }}>
+                <div style={{ backgroundColor: '#ffffff', border: '1px solid #e5e7eb', borderRadius: '12px', padding: '16px' }}>
+                  <FontAwesomeIcon icon={faSpinner} className="animate-spin" style={{ color: '#7c3aed', marginRight: '8px' }} />
+                  <span style={{ color: '#6b7280' }}>Thinking...</span>
+                </div>
+              </div>
+            )}
+            <div ref={messagesEndRef} />
+          </>
         )}
       </div>
 
-      <form onSubmit={handleSubmit} className="flex gap-2 w-full px-4">
-        <Input
+      <form
+        onSubmit={handleSubmit}
+        style={{
+          display: 'flex',
+          gap: '8px',
+          width: '100%',
+          flexShrink: 0
+        }}
+      >
+        <input
+          type="text"
           value={input}
           onChange={(e) => setInput(e.target.value)}
           placeholder="Type your message here..."
-          className="flex-1 w-full"
           disabled={loading}
+          style={{
+            flex: 1,
+            padding: '12px 16px',
+            border: '1px solid #d1d5db',
+            borderRadius: '12px',
+            fontSize: '16px',
+            outline: 'none',
+            minHeight: '50px',
+            width: '100%'
+          }}
+          onFocus={(e) => e.currentTarget.style.borderColor = '#7c3aed'}
+          onBlur={(e) => e.currentTarget.style.borderColor = '#d1d5db'}
         />
-        <Button
+        <button
           type="submit"
           disabled={loading || !input.trim()}
-          className="bg-purple-600 hover:bg-purple-700 px-6"
+          style={{
+            padding: '12px 24px',
+            backgroundColor: '#7c3aed',
+            color: '#ffffff',
+            border: 'none',
+            borderRadius: '12px',
+            fontSize: '16px',
+            cursor: loading || !input.trim() ? 'not-allowed' : 'pointer',
+            opacity: loading || !input.trim() ? 0.6 : 1,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center'
+          }}
+          onMouseEnter={(e) => {
+            if (!loading && input.trim()) {
+              e.currentTarget.style.backgroundColor = '#6d28d9';
+            }
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.backgroundColor = '#7c3aed';
+          }}
         >
           <FontAwesomeIcon icon={faPaperPlane} />
-        </Button>
+        </button>
       </form>
     </div>
   );
