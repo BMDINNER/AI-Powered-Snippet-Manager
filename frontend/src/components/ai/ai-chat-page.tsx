@@ -112,7 +112,7 @@ export const AIChatPage: React.FC = () => {
 
   return (
     <div className="flex flex-col h-[calc(100vh-80px)] w-full">
-      <div className="flex items-center justify-between mb-4">
+      <div className="flex items-center justify-between mb-4 px-4">
         <div className="flex items-center gap-3">
           <FontAwesomeIcon icon={faRobot} className="text-2xl text-purple-600" />
           <h1 className="text-2xl font-bold text-gray-800">AI Assistant</h1>
@@ -138,13 +138,13 @@ export const AIChatPage: React.FC = () => {
           messages.map(message => (
             <div
               key={message.id}
-              className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
+              className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'} w-full`}
             >
               <div
-                className={`max-w-[80%] rounded-lg p-4 ${
+                className={`rounded-lg p-4 ${
                   message.role === 'user'
-                    ? 'bg-purple-600 text-white'
-                    : 'bg-white border border-gray-200 text-gray-800'
+                    ? 'bg-purple-600 text-white max-w-[80%]'
+                    : 'bg-white border border-gray-200 text-gray-800 w-full'
                 }`}
               >
                 <div className="flex items-center gap-2 mb-2">
@@ -160,7 +160,7 @@ export const AIChatPage: React.FC = () => {
                 {message.role === 'user' ? (
                   <p className="whitespace-pre-wrap break-words">{message.content}</p>
                 ) : (
-                  <MarkdownRenderer content={message.content} />
+                  <MarkdownRenderer content={message.content} className="w-full" />
                 )}
                 
                 {message.role === 'assistant' && (
@@ -177,7 +177,7 @@ export const AIChatPage: React.FC = () => {
           ))
         )}
         {loading && (
-          <div className="flex justify-start">
+          <div className="flex justify-start w-full">
             <div className="bg-white border border-gray-200 rounded-lg p-4">
               <FontAwesomeIcon icon={faSpinner} className="animate-spin text-purple-600 mr-2" />
               <span className="text-gray-600">Thinking...</span>
@@ -186,7 +186,7 @@ export const AIChatPage: React.FC = () => {
         )}
       </div>
 
-      <form onSubmit={handleSubmit} className="flex gap-2 w-full">
+      <form onSubmit={handleSubmit} className="flex gap-2 w-full px-4">
         <Input
           value={input}
           onChange={(e) => setInput(e.target.value)}
