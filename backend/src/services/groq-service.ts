@@ -36,6 +36,25 @@ export class GroqService {
     }
   }
 
+  async generateText(prompt: string): Promise<string> {
+    try {
+      const response = await this.groq.chat.completions.create({
+        messages: [
+          { role: 'system', content: 'You are a helpful assistant. Return only the requested information, nothing else.' },
+          { role: 'user', content: prompt }
+        ],
+        model: this.model,
+        temperature: 0.5,
+        max_tokens: 100,
+      });
+
+      return response.choices[0]?.message?.content || '';
+    } catch (error: any) {
+      console.error('Groq generateText error:', error.message);
+      throw new Error(`Failed to generate text: ${error.message}`);
+    }
+  }
+
   async explainCode(code: string, language: string): Promise<string> {
     const prompt = `Explain this ${language} code in detail. Describe what it does, how it works, and any important details:\n\n${code}`;
 
@@ -96,7 +115,6 @@ export class GroqService {
 
   async checkHealth(): Promise<{ available: boolean; models?: string[] }> {
     try {
-      // testing if api key works
       await this.groq.chat.completions.create({
         messages: [{ role: 'user', content: 'test' }],
         model: this.model,

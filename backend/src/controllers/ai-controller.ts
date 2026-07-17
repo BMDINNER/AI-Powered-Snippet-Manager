@@ -3,30 +3,37 @@ import { groqService } from '../services/groq-service.js';
 
 export const generateSnippet = async (req: Request, res: Response) => {
   try {
-    const { title, description, language } = req.body;
+    const { prompt, language } = req.body;
 
-    if (!title || !description || !language) {
+    if (!prompt || !language) {
       return res.status(400).json({
         success: false,
-        message: 'Title, description, and language are required'
+        message: 'Prompt and language are required'
       });
     }
 
-    const prompt = `Generate a code snippet in ${language} for the following:
-Title: ${title}
-Description: ${description}
+    const codePrompt = `Generate a code snippet in ${language} for the following description:
+${prompt}
 
 Provide only the code without any explanations or markdown formatting.`;
 
-    const code = await groqService.generateCode(prompt, language);
+    const code = await groqService.generateCode(codePrompt, language);
+
+    const titlePrompt = `Generate a short, descriptive title (max 5 words) for a code snippet that does this: ${prompt}. Return ONLY the title, nothing else.`;
+    const title = await groqService.generateCode(titlePrompt, 'text');
+
+    const tagsPrompt = `Generate 3-5 relevant tags (single words, comma-separated) for a code snippet that does this: ${prompt}. Return ONLY the tags, nothing else. Example format: react, api, hooks`;
+    const tagsResponse = await groqService.generateCode(tagsPrompt, 'text');
+    const tags = tagsResponse.split(',').map(t => t.trim()).filter(Boolean);
 
     res.json({
       success: true,
       data: {
         code,
         language,
-        title,
-        description
+        title: title.trim() || prompt.split(' ').slice(0, 5).join(' ') + '...',
+        description: prompt,
+        tags: tags.length > 0 ? tags : ['code', 'snippet']
       }
     });
   } catch (error: any) {

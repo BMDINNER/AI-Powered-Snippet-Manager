@@ -1,91 +1,146 @@
-import Groq from 'groq-sdk';
-import { config } from '../config/index.js';
+import { Request, Response } from 'express';
+import { groqService } from '../services/groq-service.js';
 
-interface GenerateRequest {
-  prompt: string;
-  system?: string;
-  temperature?: number;
-  maxTokens?: number;
-}
+export const generateSnippet = async (req: Request, res: Response) => {
+  try {
+    const { prompt, language } = req.body;
 
-export class AIService {
-  private groq: Groq;
-  private model: string;
-
-  constructor() {
-    this.groq = new Groq({ apiKey: config.groqApiKey });
-    this.model = config.groqModel;
-  }
-
-  async generateCode(request: GenerateRequest): Promise<string> {
-    try {
-      const systemPrompt = request.system || 'You are a helpful code assistant. Generate clean, well-documented code snippets.';
-      
-      const response = await this.groq.chat.completions.create({
-        messages: [
-          { role: 'system', content: systemPrompt },
-          { role: 'user', content: request.prompt }
-        ],
-        model: this.model,
-        temperature: request.temperature || 0.7,
-        max_tokens: request.maxTokens || 500,
+    if (!prompt || !language) {
+      return res.status(400).json({
+        success: false,
+        message: 'Prompt and language are required'
       });
-
-      return response.choices[0]?.message?.content || '';
-    } catch (error: any) {
-      console.error('AI Service Error:', error.message);
-      throw new Error(`AI generation failed: ${error.message}`);
     }
-  }
 
-  async generateSnippet(title: string, description: string, language: string): Promise<string> {
-    const prompt = `Generate a code snippet in ${language} for the following:
-Title: ${title}
-Description: ${description}
+    const code = await groqService.generateCode(prompt, language);
 
-Provide only the code without any explanations or markdown formatting.`;
+    const titlePrompt = `Generate a short, descriptive title (max 5 words) for a code snippet that does this: ${prompt}. Return ONLY the title, nothing else.`;
+    const title = await groqService.generateText(titlePrompt);
 
-    return this.generateCode({ prompt, temperature: 0.8, maxTokens: 800 });
-  }
+    const tagsPrompt = `Generate 3-5 relevant tags (single words, comma-separated) for a code snippet that does this: ${prompt}. Return ONLY the tags, nothing else. Example format: react, api, hooks`;
+    const tagsResponse = await groqService.generateText(tagsPrompt);
+    const tags = tagsResponse.split(',').map(t => t.trim()).filter(Boolean);
 
-  async improveSnippet(code: string, instructions: string): Promise<string> {
-    const prompt = `Improve the following code based on these instructions:
-Code:
-${code}
-
-Instructions: ${instructions}
-
-Provide only the improved code without any explanations or markdown formatting.`;
-
-    return this.generateCode({ prompt, temperature: 0.6, maxTokens: 800 });
-  }
-
-  async explainCode(code: string): Promise<string> {
-    const prompt = `Explain the following code in simple terms, including its purpose, how it works, and any key concepts:
-${code}
-
-Provide a clear, concise explanation.`;
-
-    return this.generateCode({ 
-      prompt, 
-      temperature: 0.5, 
-      maxTokens: 500,
-      system: 'You are a code explainer. Provide clear, beginner-friendly explanations of code.'
+    res.json({
+      success: true,
+      data: {
+        code,
+        language,
+        title: title.trim() || prompt.split(' ').slice(0, 5).join(' ') + '...',
+        description: prompt,
+        tags: tags.length > 0 ? tags : ['code', 'snippet']
+      }
+    });
+  } catch (error: any) {
+    console.error('Generate snippet error:', error);
+    res.status(500).json({
+      success: false,
+      message: error.message || 'Failed to generate snippet'
     });
   }
+};
 
-  async checkHealth(): Promise<boolean> {
-    try {
-      await this.groq.chat.completions.create({
-        messages: [{ role: 'user', content: 'test' }],
-        model: this.model,
-        max_tokens: 1,
+export const improveSnippet = async (req: Request, res: Response) => {
+  try {
+    const { code, instructions } = req.body;
+
+    if (!code || !instructions) {
+      return res.status(400).json({
+        success: false,
+        message: 'Code and instructions are required'
       });
-      return true;
-    } catch (error) {
-      return false;
     }
-  }
-}
 
-export default new AIService();
+    const improvedCode = await groqService.optimizeCode(code, 'code');
+
+    res.json({
+      success: true,
+      data: {
+        code: improvedCode
+      }
+    });
+  } catch (error: any) {
+    console.error('Improve snippet error:', error);
+    res.status(500).json({
+      success: false,
+      message: error.message || 'Failed to improve snippet'
+    });
+  }
+};
+
+export const explainCode = async (req: Request, res: Response) => {
+  try {
+    const { code } = req.body;
+
+    if (!code) {
+      return res.status(400).json({
+        success: false,
+        message: 'Code is required'
+      });
+    }
+
+    const explanation = await groqService.explainCode(code, 'code');
+
+    res.json({
+      success: true,
+      data: {
+        explanation
+      }
+    });
+  } catch (error: any) {
+    console.error('Explain code error:', error);
+    res.status(500).json({
+      success: false,
+      message: error.message || 'Failed to explain code'
+    });
+  }
+};
+
+export const chatWithAI = async (req: Request, res: Response) => {
+  try {
+    const { messages } = req.body;
+
+    if (!messages || !Array.isArray(messages) || messages.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'Messages are required'
+      });
+    }
+
+    const response = await groqService.chat(messages);
+
+    res.json({
+      success: true,
+      data: {
+        response
+      }
+    });
+  } catch (error: any) {
+    console.error('Chat error:', error);
+    res.status(500).json({
+      success: false,
+      message: error.message || 'Failed to chat with AI'
+    });
+  }
+};
+
+export const checkHealth = async (req: Request, res: Response) => {
+  try {
+    const health = await groqService.checkHealth();
+    res.json({
+      success: true,
+      data: {
+        healthy: health.available,
+        model: process.env.GROQ_MODEL || 'llama-3.3-70b-versatile'
+      }
+    });
+  } catch (error: any) {
+    res.json({
+      success: true,
+      data: {
+        healthy: false,
+        error: error.message
+      }
+    });
+  }
+};

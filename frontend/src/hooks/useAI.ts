@@ -18,12 +18,11 @@ export const useAI = () => {
       
       console.log('useAI.generateSnippet result:', result);
       console.log('Result code:', result.code);
-      console.log('Result code length:', result.code?.length);
-      
-      toast.success('Snippet generated successfully');
+      console.log('Result title:', result.title);
+      console.log('Result tags:', result.tags);
       
       const snippetData = {
-        title: result.title || '',
+        title: result.title || prompt.split(' ').slice(0, 5).join(' ') + '...',
         description: result.description || prompt,
         code: result.code || '',
         language: result.language || language,
@@ -33,8 +32,8 @@ export const useAI = () => {
       };
       
       console.log('Returning snippet data:', snippetData);
-      console.log('Returning code length:', snippetData.code?.length);
       
+      toast.success('Snippet generated successfully');
       return snippetData;
     } catch (err: any) {
       const message = err.response?.data?.message || err.message || 'Failed to generate snippet';
