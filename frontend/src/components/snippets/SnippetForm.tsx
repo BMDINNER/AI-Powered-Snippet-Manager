@@ -66,9 +66,13 @@ export const SnippetForm: React.FC<SnippetFormProps> = ({ snippet, onClose }) =>
   const loadSnippet = async (snippetId: string) => {
     setLoadingSnippet(true);
     try {
+      console.log('Loading snippet with id:', snippetId);
       const data = await getSnippet(snippetId);
+      console.log('Loaded snippet data:', data);
+      console.log('Snippet code:', data.code);
       populateForm(data);
     } catch (error) {
+      console.error('Failed to load snippet:', error);
       toast.error('Failed to load snippet');
       onClose();
     } finally {
@@ -77,6 +81,7 @@ export const SnippetForm: React.FC<SnippetFormProps> = ({ snippet, onClose }) =>
   };
 
   const populateForm = (snippetData: Snippet) => {
+    console.log('Populating form with:', snippetData);
     setFormData({
       title: snippetData.title || '',
       description: snippetData.description || '',
@@ -99,6 +104,9 @@ export const SnippetForm: React.FC<SnippetFormProps> = ({ snippet, onClose }) =>
         tags: formData.tags.split(',').map((t: string) => t.trim()).filter(Boolean)
       };
 
+      console.log('Submitting snippet data:', data);
+      console.log('Code length:', data.code?.length);
+
       if (id) {
         await updateSnippet(id, data);
         toast.success('Snippet updated successfully');
@@ -112,6 +120,7 @@ export const SnippetForm: React.FC<SnippetFormProps> = ({ snippet, onClose }) =>
       onClose();
       navigate('/snippets');
     } catch (error: any) {
+      console.error('Failed to save snippet:', error);
       toast.error(error.message || 'Failed to save snippet');
     } finally {
       setLoading(false);
@@ -128,6 +137,9 @@ export const SnippetForm: React.FC<SnippetFormProps> = ({ snippet, onClose }) =>
       toast.loading('Generating snippet...', { id: 'ai-generate' });
       
       const generated = await generateSnippet(formData.description, formData.language);
+      
+      console.log('Generated object:', generated);
+      console.log('Generated code:', generated.code);
       
       if (!generated || !generated.code) {
         toast.error('AI returned empty code. Please try again with a different description.', { id: 'ai-generate' });
@@ -148,6 +160,7 @@ export const SnippetForm: React.FC<SnippetFormProps> = ({ snippet, onClose }) =>
       
       toast.success('Snippet generated successfully', { id: 'ai-generate' });
     } catch (error: any) {
+      console.error('AI generation failed:', error);
       toast.error(error.message || 'AI generation failed', { id: 'ai-generate' });
     }
   };
@@ -173,6 +186,7 @@ export const SnippetForm: React.FC<SnippetFormProps> = ({ snippet, onClose }) =>
         toast.error('Optimization returned empty result', { id: 'ai-optimize' });
       }
     } catch (error: any) {
+      console.error('AI optimization failed:', error);
       toast.error(error.message || 'AI optimization failed', { id: 'ai-optimize' });
     }
   };

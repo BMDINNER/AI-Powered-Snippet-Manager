@@ -13,12 +13,17 @@ export class GroqService {
   constructor() {
     this.groq = new Groq({ apiKey: config.groqApiKey });
     this.model = config.groqModel || 'llama-3.3-70b-versatile';
+    console.log('GroqService initialized with model:', this.model);
   }
 
   async generateCode(prompt: string, language: string): Promise<string> {
     const fullPrompt = `Generate ${language} code for: ${prompt}. Return only the code without any explanations, markdown formatting, or code blocks. Just the raw code.`;
 
     try {
+      console.log('GroqService.generateCode called with:');
+      console.log('Language:', language);
+      console.log('Prompt:', prompt);
+      
       const response = await this.groq.chat.completions.create({
         messages: [
           { role: 'system', content: `You are a helpful code assistant. Generate clean, well-documented ${language} code. Return ONLY the raw code without any markdown formatting, code blocks, or explanations.` },
@@ -29,7 +34,11 @@ export class GroqService {
         max_tokens: 4096,
       });
 
-      return response.choices[0]?.message?.content || '';
+      const generated = response.choices[0]?.message?.content || '';
+      console.log('Generated code length:', generated.length);
+      console.log('Generated code preview:', generated.substring(0, 200) + '...');
+      
+      return generated;
     } catch (error: any) {
       console.error('Groq generateCode error:', error.message);
       throw new Error(`Failed to generate code: ${error.message}`);

@@ -12,13 +12,19 @@ export const useAI = () => {
     setError(null);
     
     try {
+      console.log('useAI.generateSnippet called with:', { prompt, language });
+      
       const result = await aiService.generateSnippet({ prompt, language });
       
+      console.log('useAI.generateSnippet raw result:', result);
+      
       if (!result || !result.code) {
+        console.error('No code returned from API:', result);
         throw new Error('AI returned empty code. Please try again with a different description.');
       }
 
       if (result.code.length === 0) {
+        console.error('Empty code string returned:', result);
         throw new Error('AI returned empty code. Please try again with a different description.');
       }
       
@@ -32,10 +38,14 @@ export const useAI = () => {
         userId: ''
       };
       
+      console.log('Final snippet data being returned:', snippetData);
+      console.log('Code length in final data:', snippetData.code.length);
+      
       toast.success('Snippet generated successfully');
       return snippetData;
     } catch (err: any) {
       const message = err.response?.data?.message || err.message || 'Failed to generate snippet';
+      console.error('useAI.generateSnippet error:', err);
       setError(message);
       toast.error(message);
       throw err;
