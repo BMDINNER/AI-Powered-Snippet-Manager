@@ -81,6 +81,20 @@ export const register = async (req: Request, res: Response) => {
       });
     }
     
+    console.log('=== SENDING TO AUTH-SERVICE ===');
+    console.log('URL:', `${config.authServiceUrl}/auth/project/register`);
+    console.log('Headers:', {
+      'x-api-key': config.apiKey,
+      'x-project-id': config.projectId,
+      'Content-Type': 'application/json'
+    });
+    console.log('Body:', {
+      email,
+      password: '[REDACTED]',
+      username,
+      projectId: config.projectId
+    });
+    
     const response = await axios.post(
       `${config.authServiceUrl}/auth/project/register`,
       { 
@@ -92,11 +106,21 @@ export const register = async (req: Request, res: Response) => {
       { headers: getAuthHeaders() }
     );
     
+    console.log('=== AUTH-SERVICE RESPONSE ===');
+    console.log('Status:', response.status);
+    console.log('Data:', response.data);
+    
     res.json(response.data);
   } catch (error: any) {
-    console.error('Register error:', error.message);
+    console.error('=== REGISTER ERROR ===');
+    console.error('Message:', error.message);
     if (error.response) {
-      console.error('Auth service response:', error.response.data);
+      console.error('Auth service status:', error.response.status);
+      console.error('Auth service data:', error.response.data);
+    }
+    if (error.request) {
+      console.error('No response received from auth-service');
+      console.error('Request was sent to:', `${config.authServiceUrl}/auth/project/register`);
     }
     const status = error.response?.status || 500;
     const message = error.response?.data?.message || error.message;
