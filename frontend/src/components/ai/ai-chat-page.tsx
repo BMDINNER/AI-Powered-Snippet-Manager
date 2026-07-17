@@ -20,7 +20,6 @@ interface Message {
   id: string;
   role: 'user' | 'assistant';
   content: string;
-  type?: 'code' | 'explanation' | 'general';
 }
 
 export const AIChatPage: React.FC = () => {
@@ -29,18 +28,11 @@ export const AIChatPage: React.FC = () => {
     {
       id: '1',
       role: 'assistant',
-      content: 'Hello! I can help you generate code snippets, explain code, or improve existing code. What would you like to do?',
-      type: 'general'
+      content: 'Hello! I\'m your AI coding assistant. I can help you with code generation, explanations, and improvements. What would you like help with?'
     }
   ]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
-  const [selectedLanguage, setSelectedLanguage] = useState('javascript');
-  const [mode, setMode] = useState<'generate' | 'explain' | 'improve'>('generate');
-
-  const languages = [
-    'javascript', 'python', 'typescript', 'go', 'rust', 'cpp', 'java', 'csharp', 'php', 'ruby', 'swift', 'kotlin'
-  ];
 
   const handleCopy = (text: string) => {
     navigator.clipboard.writeText(text);
@@ -52,8 +44,7 @@ export const AIChatPage: React.FC = () => {
       {
         id: '1',
         role: 'assistant',
-        content: 'Chat cleared. How can I help you with code?',
-        type: 'general'
+        content: 'Chat cleared. How can I help you with code?'
       }
     ]);
     toast.success('Chat cleared');
@@ -67,8 +58,7 @@ export const AIChatPage: React.FC = () => {
     const userMessage: Message = {
       id: Date.now().toString(),
       role: 'user',
-      content: input,
-      type: 'general'
+      content: input
     };
     
     setMessages(prev => [...prev, userMessage]);
@@ -98,8 +88,7 @@ export const AIChatPage: React.FC = () => {
         const aiMessage: Message = {
           id: Date.now().toString(),
           role: 'assistant',
-          content: data.data.response || 'I didn\'t understand that. Could you please rephrase?',
-          type: 'general'
+          content: data.data.response || 'I didn\'t understand that. Could you please rephrase?'
         };
         setMessages(prev => [...prev, aiMessage]);
       } else {
@@ -111,8 +100,7 @@ export const AIChatPage: React.FC = () => {
       const errorMessage: Message = {
         id: Date.now().toString(),
         role: 'assistant',
-        content: `Error: ${error.message || 'Failed to process request. Please try again.'}`,
-        type: 'general'
+        content: `Error: ${error.message || 'Failed to process request. Please try again.'}`
       };
       setMessages(prev => [...prev, errorMessage]);
       
@@ -123,107 +111,71 @@ export const AIChatPage: React.FC = () => {
   };
 
   return (
-    <div className="flex flex-col h-[calc(100vh-100px)] w-full max-w-none">
+    <div className="flex flex-col h-[calc(100vh-80px)] w-full">
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-3">
           <FontAwesomeIcon icon={faRobot} className="text-2xl text-purple-600" />
           <h1 className="text-2xl font-bold text-gray-800">AI Assistant</h1>
-          <span className="text-sm text-gray-500 bg-gray-100 px-3 py-1 rounded-full">
-            {mode === 'generate' ? 'Generate' : mode === 'explain' ? 'Explain' : 'Improve'}
-          </span>
         </div>
-        <div className="flex gap-2">
-          <Button
-            variant="secondary"
-            size="sm"
-            onClick={handleClearChat}
-            className="text-red-600 hover:text-red-700"
-          >
-            <FontAwesomeIcon icon={faTrash} className="mr-1" />
-            Clear
-          </Button>
-        </div>
+        <Button
+          variant="secondary"
+          size="sm"
+          onClick={handleClearChat}
+          className="text-red-600 hover:text-red-700"
+        >
+          <FontAwesomeIcon icon={faTrash} className="mr-1" />
+          Clear Chat
+        </Button>
       </div>
 
-      <div className="flex flex-wrap gap-3 mb-4">
-        <div className="flex gap-2">
-          <Button
-            size="sm"
-            variant={mode === 'generate' ? 'primary' : 'secondary'}
-            onClick={() => setMode('generate')}
-          >
-            Generate
-          </Button>
-          <Button
-            size="sm"
-            variant={mode === 'explain' ? 'primary' : 'secondary'}
-            onClick={() => setMode('explain')}
-          >
-            Explain
-          </Button>
-          <Button
-            size="sm"
-            variant={mode === 'improve' ? 'primary' : 'secondary'}
-            onClick={() => setMode('improve')}
-          >
-            Improve
-          </Button>
-        </div>
-
-        {mode === 'generate' && (
-          <select
-            value={selectedLanguage}
-            onChange={(e) => setSelectedLanguage(e.target.value)}
-            className="px-3 py-1 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
-          >
-            {languages.map(lang => (
-              <option key={lang} value={lang}>{lang}</option>
-            ))}
-          </select>
-        )}
-      </div>
-
-      <div className="flex-1 overflow-y-auto space-y-4 mb-4 bg-gray-50 rounded-lg p-4 w-full">
-        {messages.map(message => (
-          <div
-            key={message.id}
-            className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
-          >
-            <div
-              className={`max-w-[85%] rounded-lg p-4 ${
-                message.role === 'user'
-                  ? 'bg-purple-600 text-white'
-                  : 'bg-white border border-gray-200 text-gray-800'
-              }`}
-            >
-              <div className="flex items-center gap-2 mb-2">
-                <FontAwesomeIcon
-                  icon={message.role === 'user' ? faUser : faRobot}
-                  className={message.role === 'user' ? 'text-purple-200' : 'text-purple-600'}
-                />
-                <span className="text-sm font-medium">
-                  {message.role === 'user' ? 'You' : 'AI Assistant'}
-                </span>
-              </div>
-              
-              {message.role === 'user' ? (
-                <p className="whitespace-pre-wrap break-words">{message.content}</p>
-              ) : (
-                <MarkdownRenderer content={message.content} />
-              )}
-              
-              {message.role === 'assistant' && (
-                <button
-                  onClick={() => handleCopy(message.content)}
-                  className="mt-2 text-gray-400 hover:text-gray-600 transition-colors text-sm"
-                >
-                  <FontAwesomeIcon icon={faCopy} className="mr-1" />
-                  Copy
-                </button>
-              )}
-            </div>
+      <div className="flex-1 overflow-y-auto space-y-4 mb-4 bg-gray-50 rounded-lg p-6 w-full">
+        {messages.length === 0 ? (
+          <div className="flex flex-col items-center justify-center h-full text-gray-400">
+            <FontAwesomeIcon icon={faRobot} className="text-6xl mb-4" />
+            <p className="text-lg">Start a conversation with the AI assistant</p>
           </div>
-        ))}
+        ) : (
+          messages.map(message => (
+            <div
+              key={message.id}
+              className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
+            >
+              <div
+                className={`max-w-[80%] rounded-lg p-4 ${
+                  message.role === 'user'
+                    ? 'bg-purple-600 text-white'
+                    : 'bg-white border border-gray-200 text-gray-800'
+                }`}
+              >
+                <div className="flex items-center gap-2 mb-2">
+                  <FontAwesomeIcon
+                    icon={message.role === 'user' ? faUser : faRobot}
+                    className={message.role === 'user' ? 'text-purple-200' : 'text-purple-600'}
+                  />
+                  <span className="text-sm font-medium">
+                    {message.role === 'user' ? 'You' : 'AI Assistant'}
+                  </span>
+                </div>
+                
+                {message.role === 'user' ? (
+                  <p className="whitespace-pre-wrap break-words">{message.content}</p>
+                ) : (
+                  <MarkdownRenderer content={message.content} />
+                )}
+                
+                {message.role === 'assistant' && (
+                  <button
+                    onClick={() => handleCopy(message.content)}
+                    className="mt-2 text-gray-400 hover:text-gray-600 transition-colors text-sm"
+                  >
+                    <FontAwesomeIcon icon={faCopy} className="mr-1" />
+                    Copy
+                  </button>
+                )}
+              </div>
+            </div>
+          ))
+        )}
         {loading && (
           <div className="flex justify-start">
             <div className="bg-white border border-gray-200 rounded-lg p-4">
@@ -238,14 +190,8 @@ export const AIChatPage: React.FC = () => {
         <Input
           value={input}
           onChange={(e) => setInput(e.target.value)}
-          placeholder={
-            mode === 'generate'
-              ? 'Describe what you want to generate...'
-              : mode === 'explain'
-              ? 'Paste code to explain...'
-              : 'Paste code to improve...'
-          }
-          className="flex-1 w-full min-h-[50px]"
+          placeholder="Type your message here..."
+          className="flex-1 w-full"
           disabled={loading}
         />
         <Button
