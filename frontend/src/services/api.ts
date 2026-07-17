@@ -50,7 +50,10 @@ api.interceptors.response.use(
   async (error) => {
     const originalRequest = error.config as InternalAxiosRequestConfig & { _retry?: boolean };
 
-    // Don't retry on 400 Bad Request (like wrong password)
+    if (error.response?.status === 401 && originalRequest.url?.includes('/auth/login')) {
+      return Promise.reject(error);
+    }
+
     if (error.response?.status === 400) {
       return Promise.reject(error);
     }
@@ -85,7 +88,7 @@ api.interceptors.response.use(
     try {
       const refreshToken = localStorage.getItem('refreshToken');
       if (!refreshToken) {
-        throw new Error('No refresh token');
+        throw new Error('No refresh token available');
       }
 
       const response = await axios.post(`${authUrl}/auth/refresh`, {

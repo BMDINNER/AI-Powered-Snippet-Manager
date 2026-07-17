@@ -13,6 +13,8 @@ import {
   faCode
 } from '@fortawesome/free-solid-svg-icons';
 
+const AUTH_URL = import.meta.env.VITE_AUTH_URL;
+
 export const LoginPage: React.FC = () => {
   const navigate = useNavigate();
   const { login, isAuthenticated } = useAuth();
@@ -41,9 +43,18 @@ export const LoginPage: React.FC = () => {
       if (err.response?.status === 401) {
         setError('Invalid email or password. Please try again.');
       } else if (err.response?.data?.message) {
-        setError(err.response.data.message);
+        const msg = err.response.data.message;
+        if (msg.includes('refresh') || msg.includes('token')) {
+          setError('Invalid email or password. Please try again.');
+        } else {
+          setError(msg);
+        }
       } else if (err.message) {
-        setError(err.message);
+        if (err.message.includes('refresh') || err.message.includes('token')) {
+          setError('Invalid email or password. Please try again.');
+        } else {
+          setError(err.message);
+        }
       } else {
         setError('Something went wrong. Please try again.');
       }

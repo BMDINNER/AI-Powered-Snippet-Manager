@@ -15,14 +15,14 @@ export const login = async (req: Request, res: Response) => {
     if (!config.projectId) {
       return res.status(500).json({
         success: false,
-        message: 'Server configuration error: Project ID missing'
+        message: 'Server configuration error'
       });
     }
     
     if (!config.apiKey) {
       return res.status(500).json({
         success: false,
-        message: 'Server configuration error: API Key missing'
+        message: 'Server configuration error'
       });
     }
     
@@ -42,7 +42,7 @@ export const login = async (req: Request, res: Response) => {
     
     if (error.response) {
       const status = error.response.status;
-      const message = error.response.data?.message || error.response.data?.error || 'Login failed';
+      const message = error.response.data?.message || error.response.data?.error;
       
       if (status === 401) {
         return res.status(401).json({
@@ -51,10 +51,12 @@ export const login = async (req: Request, res: Response) => {
         });
       }
       
-      return res.status(status).json({
-        success: false,
-        message: message
-      });
+      if (message) {
+        return res.status(status).json({
+          success: false,
+          message: message
+        });
+      }
     }
     
     res.status(500).json({
@@ -71,14 +73,14 @@ export const register = async (req: Request, res: Response) => {
     if (!config.projectId) {
       return res.status(500).json({
         success: false,
-        message: 'Server configuration error: Project ID missing'
+        message: 'Server configuration error'
       });
     }
     
     if (!config.apiKey) {
       return res.status(500).json({
         success: false,
-        message: 'Server configuration error: API Key missing'
+        message: 'Server configuration error'
       });
     }
     
@@ -101,7 +103,7 @@ export const register = async (req: Request, res: Response) => {
       const status = error.response.status;
       const message = error.response.data?.message || error.response.data?.error || 'Registration failed';
       
-      if (status === 400 && message.includes('already exists')) {
+      if (status === 400 && message && message.includes('already exists')) {
         return res.status(400).json({
           success: false,
           message: 'Email already registered'
