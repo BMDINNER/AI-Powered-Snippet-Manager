@@ -92,8 +92,7 @@ export const AIChatPage: React.FC = () => {
               'Authorization': `Bearer ${token}`
             },
             body: JSON.stringify({
-              title: input,
-              description: 'Generated code snippet',
+              prompt: input,
               language: selectedLanguage
             })
           });
@@ -118,7 +117,10 @@ export const AIChatPage: React.FC = () => {
               'Content-Type': 'application/json',
               'Authorization': `Bearer ${token}`
             },
-            body: JSON.stringify({ code: input })
+            body: JSON.stringify({ 
+              code: input,
+              language: selectedLanguage
+            })
           });
           
           const explainData = await response.json();
@@ -143,7 +145,8 @@ export const AIChatPage: React.FC = () => {
             },
             body: JSON.stringify({
               code: input,
-              instructions: 'Improve the code quality and readability'
+              instructions: 'Improve the code quality and readability',
+              language: selectedLanguage
             })
           });
           
