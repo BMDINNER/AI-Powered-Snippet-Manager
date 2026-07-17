@@ -81,34 +81,41 @@ export const register = async (req: Request, res: Response) => {
       });
     }
     
-    console.log('=== SENDING TO AUTH-SERVICE ===');
-    console.log('URL:', `${config.authServiceUrl}/auth/project/register`);
-    console.log('Headers:', {
+    const requestData = {
+      email: email,
+      password: password,
+      username: username,
+      projectId: config.projectId 
+    };
+    
+    const requestHeaders = {
       'x-api-key': config.apiKey,
       'x-project-id': config.projectId,
       'Content-Type': 'application/json'
+    };
+    
+    console.log('=== SENDING TO AUTH-SERVICE ===');
+    console.log('URL:', `${config.authServiceUrl}/auth/project/register`);
+    console.log('Headers:', {
+      'x-api-key': requestHeaders['x-api-key'],
+      'x-project-id': requestHeaders['x-project-id']
     });
     console.log('Body:', {
-      email,
+      email: requestData.email,
       password: '[REDACTED]',
-      username,
-      projectId: config.projectId
+      username: requestData.username,
+      projectId: requestData.projectId
     });
     
     const response = await axios.post(
       `${config.authServiceUrl}/auth/project/register`,
-      { 
-        email, 
-        password, 
-        username, 
-        projectId: config.projectId 
-      },
-      { headers: getAuthHeaders() }
+      requestData,
+      { headers: requestHeaders }
     );
     
     console.log('=== AUTH-SERVICE RESPONSE ===');
     console.log('Status:', response.status);
-    console.log('Data:', response.data);
+    console.log('Success:', response.data.success);
     
     res.json(response.data);
   } catch (error: any) {
