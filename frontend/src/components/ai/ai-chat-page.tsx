@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { useAuth } from '@bmdinner/logreg';
 import { Button } from '../ui/Button';
 import { Input } from '../ui/Input';
-import { Card } from '../ui/Card';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { 
   faRobot, 
@@ -125,7 +124,7 @@ export const AIChatPage: React.FC = () => {
   };
 
   return (
-    <div className="flex flex-col h-[calc(100vh-100px)] w-full">
+    <div className="flex flex-col h-[calc(100vh-100px)] w-full max-w-none">
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-3">
           <FontAwesomeIcon icon={faRobot} className="text-2xl text-purple-600" />
@@ -241,13 +240,13 @@ export const AIChatPage: React.FC = () => {
               ? 'Paste code to explain...'
               : 'Paste code to improve...'
           }
-          className="flex-1 w-full"
+          className="flex-1 w-full min-h-[50px]"
           disabled={loading}
         />
         <Button
           type="submit"
           disabled={loading || !input.trim()}
-          className="bg-purple-600 hover:bg-purple-700"
+          className="bg-purple-600 hover:bg-purple-700 px-6"
         >
           <FontAwesomeIcon icon={faPaperPlane} />
         </Button>
