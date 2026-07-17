@@ -95,7 +95,6 @@ export const AIChatPage: React.FC = () => {
       });
       
       const data = await response.json();
-      console.log('AI Chat Response:', data);
       
       if (data.success) {
         const aiMessage: Message = {
