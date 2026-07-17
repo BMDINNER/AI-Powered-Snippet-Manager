@@ -3,13 +3,8 @@ import type { Snippet, SnippetQuery, PaginatedResponse } from '../types';
 
 export const snippetService = {
   async createSnippet(data: any): Promise<Snippet> {
-    console.log('snippetService.createSnippet called with:', data);
     const response = await api.post('/snippets', data);
-    console.log('snippetService.createSnippet response:', response);
-    const snippetData = (response as any).data;
-    console.log('Extracted snippet data:', snippetData);
-    console.log('Code length in response:', snippetData?.code?.length);
-    return snippetData;
+    return (response as any).data as Snippet;
   },
 
   async getSnippets(query?: SnippetQuery): Promise<PaginatedResponse<Snippet>> {
@@ -23,13 +18,8 @@ export const snippetService = {
     if (query?.limit) params.append('limit', query.limit.toString());
     
     const queryString = params.toString();
-    console.log('snippetService.getSnippets URL:', `/snippets?${queryString}`);
-    
     const response = await api.get(`/snippets?${queryString}`);
     const apiResponse = response as any;
-    
-    console.log('snippetService.getSnippets raw response:', apiResponse);
-    console.log('Data array length:', apiResponse.data?.length);
     
     return {
       snippets: apiResponse.data || [],
@@ -41,22 +31,16 @@ export const snippetService = {
   },
 
   async getSnippet(id: string): Promise<Snippet> {
-    console.log('snippetService.getSnippet called with id:', id);
     const response = await api.get(`/snippets/${id}`);
-    const snippetData = (response as any).data;
-    console.log('snippetService.getSnippet response:', snippetData);
-    console.log('Code in retrieved snippet:', snippetData?.code?.length);
-    return snippetData;
+    return (response as any).data as Snippet;
   },
 
   async updateSnippet(id: string, data: any): Promise<Snippet> {
-    console.log('snippetService.updateSnippet called with id:', id, data);
     const response = await api.put(`/snippets/${id}`, data);
     return (response as any).data as Snippet;
   },
 
   async deleteSnippet(id: string): Promise<void> {
-    console.log('snippetService.deleteSnippet called with id:', id);
     const response = await api.delete(`/snippets/${id}`);
     return response as unknown as void;
   },

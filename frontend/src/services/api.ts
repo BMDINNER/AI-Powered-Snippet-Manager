@@ -45,17 +45,10 @@ api.interceptors.request.use(
 
 api.interceptors.response.use(
   (response: AxiosResponse) => {
-    console.log('API Response success:', response.config.url, response.status);
     return response.data;
   },
   async (error) => {
     const originalRequest = error.config as InternalAxiosRequestConfig & { _retry?: boolean };
-    
-    console.log('API Response error:', { 
-      url: originalRequest?.url, 
-      status: error.response?.status, 
-      message: error.message 
-    });
 
     if (!error.response || error.response.status !== 401 || originalRequest._retry) {
       return Promise.reject(error);
@@ -90,8 +83,6 @@ api.interceptors.response.use(
         throw new Error('No refresh token');
       }
 
-      console.log('Refreshing token...');
-      
       const response = await axios.post(`${authUrl}/auth/refresh`, {
         refreshToken
       });
@@ -101,8 +92,6 @@ api.interceptors.response.use(
       if (!token) {
         throw new Error('No token in response');
       }
-      
-      console.log('Token refreshed successfully');
       
       localStorage.setItem('token', token);
       
@@ -115,8 +104,6 @@ api.interceptors.response.use(
       return api(originalRequest);
       
     } catch (refreshError) {
-      console.error('Token refresh failed:', refreshError);
-      
       localStorage.removeItem('token');
       localStorage.removeItem('refreshToken');
       localStorage.removeItem('user');

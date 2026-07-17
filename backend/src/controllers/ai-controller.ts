@@ -23,10 +23,6 @@ export const generateSnippet = async (req: Request, res: Response) => {
   try {
     const { prompt, language } = req.body;
 
-    console.log('=== AI CONTROLLER: generateSnippet ===');
-    console.log('Prompt:', prompt);
-    console.log('Language:', language);
-
     if (!prompt || !language) {
       return res.status(400).json({
         success: false,
@@ -35,11 +31,7 @@ export const generateSnippet = async (req: Request, res: Response) => {
     }
 
     const code = await groqService.generateCode(prompt, language);
-    console.log('Generated code length:', code?.length || 0);
-    console.log('Generated code preview:', code?.substring(0, 200) || 'EMPTY');
-
     const cleanCode = stripCodeBlock(code);
-    console.log('Clean code length:', cleanCode?.length || 0);
 
     if (!cleanCode || cleanCode.length === 0) {
       return res.status(500).json({
@@ -60,7 +52,7 @@ export const generateSnippet = async (req: Request, res: Response) => {
     const tagsResponse = await groqService.generateText(tagsPrompt);
     const tags = tagsResponse.split(',').map(t => t.trim().replace(/^["']|["']$/g, '')).filter(Boolean);
 
-    const responseData = {
+    res.json({
       success: true,
       data: {
         code: cleanCode,
@@ -69,12 +61,7 @@ export const generateSnippet = async (req: Request, res: Response) => {
         description: prompt,
         tags: tags.length > 0 ? tags : ['code', 'snippet']
       }
-    };
-
-    console.log('Response data code length:', responseData.data.code?.length || 0);
-    console.log('Response data title:', responseData.data.title);
-
-    res.json(responseData);
+    });
   } catch (error: any) {
     console.error('Generate snippet error:', error);
     res.status(500).json({
@@ -87,10 +74,6 @@ export const generateSnippet = async (req: Request, res: Response) => {
 export const improveSnippet = async (req: Request, res: Response) => {
   try {
     const { code, instructions } = req.body;
-
-    console.log('=== AI CONTROLLER: improveSnippet ===');
-    console.log('Code length:', code?.length || 0);
-    console.log('Instructions:', instructions);
 
     if (!code || !instructions) {
       return res.status(400).json({
@@ -127,9 +110,6 @@ export const improveSnippet = async (req: Request, res: Response) => {
 export const explainCode = async (req: Request, res: Response) => {
   try {
     const { code } = req.body;
-
-    console.log('=== AI CONTROLLER: explainCode ===');
-    console.log('Code length:', code?.length || 0);
 
     if (!code) {
       return res.status(400).json({
