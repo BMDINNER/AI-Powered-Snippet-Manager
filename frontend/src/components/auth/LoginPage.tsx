@@ -14,7 +14,7 @@ import {
 } from '@fortawesome/free-solid-svg-icons';
 import { faGoogle, faGithub } from '@fortawesome/free-brands-svg-icons';
 
-const AUTH_URL = import.meta.env.VITE_AUTH_URL || 'http://localhost:3001';
+const AUTH_URL = import.meta.env.VITE_AUTH_URL;
 
 export const LoginPage: React.FC = () => {
   const navigate = useNavigate();

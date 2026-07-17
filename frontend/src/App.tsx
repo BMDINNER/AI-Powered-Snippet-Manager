@@ -49,7 +49,7 @@ const AppContent: React.FC = () => {
 };
 
 const App: React.FC = () => {
-  const authUrl = import.meta.env.VITE_AUTH_URL || 'http://localhost:3002';
+  const authUrl = import.meta.env.VITE_AUTH_URL;
 
   return (
     <BrowserRouter>
