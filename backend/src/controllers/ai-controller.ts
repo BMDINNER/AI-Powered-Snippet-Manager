@@ -23,6 +23,10 @@ export const generateSnippet = async (req: Request, res: Response) => {
   try {
     const { prompt, language } = req.body;
 
+    console.log('=== AI CONTROLLER: generateSnippet ===');
+    console.log('Prompt:', prompt);
+    console.log('Language:', language);
+
     if (!prompt || !language) {
       return res.status(400).json({
         success: false,
@@ -30,27 +34,47 @@ export const generateSnippet = async (req: Request, res: Response) => {
       });
     }
 
-    let code = await groqService.generateCode(prompt, language);
-    code = stripCodeBlock(code);
+    const code = await groqService.generateCode(prompt, language);
+    console.log('Generated code length:', code?.length || 0);
+    console.log('Generated code preview:', code?.substring(0, 200) || 'EMPTY');
+
+    const cleanCode = stripCodeBlock(code);
+    console.log('Clean code length:', cleanCode?.length || 0);
+
+    if (!cleanCode || cleanCode.length === 0) {
+      return res.status(500).json({
+        success: false,
+        message: 'AI returned empty code. Please try again with a different prompt.'
+      });
+    }
 
     const titlePrompt = `Generate a short, descriptive title (max 5 words) for a code snippet that does this: ${prompt}. Return ONLY the title, nothing else.`;
     let title = await groqService.generateText(titlePrompt);
     title = title.replace(/^["']|["']$/g, '').trim();
 
+    if (!title || title.length === 0) {
+      title = prompt.split(' ').slice(0, 5).join(' ') + '...';
+    }
+
     const tagsPrompt = `Generate 3-5 relevant tags (single words, comma-separated) for a code snippet that does this: ${prompt}. Return ONLY the tags, nothing else. Example format: react, api, hooks`;
     const tagsResponse = await groqService.generateText(tagsPrompt);
     const tags = tagsResponse.split(',').map(t => t.trim().replace(/^["']|["']$/g, '')).filter(Boolean);
 
-    res.json({
+    const responseData = {
       success: true,
       data: {
-        code,
-        language,
-        title: title || prompt.split(' ').slice(0, 5).join(' ') + '...',
+        code: cleanCode,
+        language: language,
+        title: title,
         description: prompt,
         tags: tags.length > 0 ? tags : ['code', 'snippet']
       }
-    });
+    };
+
+    console.log('Response data code length:', responseData.data.code?.length || 0);
+    console.log('Response data title:', responseData.data.title);
+
+    res.json(responseData);
   } catch (error: any) {
     console.error('Generate snippet error:', error);
     res.status(500).json({
@@ -64,6 +88,10 @@ export const improveSnippet = async (req: Request, res: Response) => {
   try {
     const { code, instructions } = req.body;
 
+    console.log('=== AI CONTROLLER: improveSnippet ===');
+    console.log('Code length:', code?.length || 0);
+    console.log('Instructions:', instructions);
+
     if (!code || !instructions) {
       return res.status(400).json({
         success: false,
@@ -71,13 +99,20 @@ export const improveSnippet = async (req: Request, res: Response) => {
       });
     }
 
-    let improvedCode = await groqService.optimizeCode(code, 'code');
-    improvedCode = stripCodeBlock(improvedCode);
+    const improvedCode = await groqService.optimizeCode(code, 'code');
+    const cleanCode = stripCodeBlock(improvedCode);
+
+    if (!cleanCode || cleanCode.length === 0) {
+      return res.status(500).json({
+        success: false,
+        message: 'AI returned empty optimized code. Please try again.'
+      });
+    }
 
     res.json({
       success: true,
       data: {
-        code: improvedCode
+        code: cleanCode
       }
     });
   } catch (error: any) {
@@ -93,6 +128,9 @@ export const explainCode = async (req: Request, res: Response) => {
   try {
     const { code } = req.body;
 
+    console.log('=== AI CONTROLLER: explainCode ===');
+    console.log('Code length:', code?.length || 0);
+
     if (!code) {
       return res.status(400).json({
         success: false,
@@ -101,6 +139,13 @@ export const explainCode = async (req: Request, res: Response) => {
     }
 
     const explanation = await groqService.explainCode(code, 'code');
+
+    if (!explanation || explanation.length === 0) {
+      return res.status(500).json({
+        success: false,
+        message: 'AI returned empty explanation. Please try again.'
+      });
+    }
 
     res.json({
       success: true,

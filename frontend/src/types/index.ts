@@ -65,8 +65,7 @@ export interface PaginatedResponse<T> {
   page: number;
   limit: number;
   pages: number;
-  };
-
+}
 
 export interface AIMessage {
   role: 'user' | 'assistant' | 'system';
@@ -98,7 +97,6 @@ export interface AIGenerateResponse {
   code: string;
   language: string;
   tags: string[];
-  aiGenerated: boolean;
 }
 
 export interface AIOptimizeResponse {
@@ -111,4 +109,17 @@ export interface AIExplainResponse {
 
 export interface AIChatResponse {
   response: string;
+}
+
+export interface ApiResponse<T = any> {
+  success: boolean;
+  data?: T;
+  message?: string;
+  error?: string;
+  meta?: {
+    total: number;
+    page: number;
+    limit: number;
+    pages: number;
+  };
 }

@@ -4,7 +4,7 @@ import {
   CreateSnippetInput, 
   UpdateSnippetInput, 
   SnippetQuery 
-} from '../models/snippet-model.js';
+} from '../types/index.js';
 
 export class SnippetService {
   async createSnippet(data: CreateSnippetInput): Promise<Snippet> {

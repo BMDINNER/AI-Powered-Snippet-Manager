@@ -13,15 +13,20 @@ export class GroqService {
   constructor() {
     this.groq = new Groq({ apiKey: config.groqApiKey });
     this.model = config.groqModel || 'llama-3.3-70b-versatile';
+    console.log('GroqService initialized with model:', this.model);
   }
 
   async generateCode(prompt: string, language: string): Promise<string> {
-    const fullPrompt = `Generate ${language} code for: ${prompt}. Return only the code without any explanations.`;
+    const fullPrompt = `Generate ${language} code for: ${prompt}. Return only the code without any explanations, markdown formatting, or code blocks. Just the raw code.`;
 
     try {
+      console.log('GroqService.generateCode called with:');
+      console.log('Language:', language);
+      console.log('Prompt:', prompt);
+      
       const response = await this.groq.chat.completions.create({
         messages: [
-          { role: 'system', content: 'You are a helpful code assistant. Generate clean, well-documented code snippets.' },
+          { role: 'system', content: `You are a helpful code assistant. Generate clean, well-documented ${language} code. Return ONLY the raw code without any markdown formatting, code blocks, or explanations.` },
           { role: 'user', content: fullPrompt }
         ],
         model: this.model,
@@ -29,7 +34,11 @@ export class GroqService {
         max_tokens: 4096,
       });
 
-      return response.choices[0]?.message?.content || '';
+      const generated = response.choices[0]?.message?.content || '';
+      console.log('Generated code length:', generated.length);
+      console.log('Generated code preview:', generated.substring(0, 200) + '...');
+      
+      return generated;
     } catch (error: any) {
       console.error('Groq generateCode error:', error.message);
       throw new Error(`Failed to generate code: ${error.message}`);
@@ -40,18 +49,18 @@ export class GroqService {
     try {
       const response = await this.groq.chat.completions.create({
         messages: [
-          { role: 'system', content: 'You are a helpful assistant. Return only the requested information, nothing else.' },
+          { role: 'system', content: 'You are a helpful assistant. Return ONLY the requested text without any explanations, markdown, or extra formatting.' },
           { role: 'user', content: prompt }
         ],
         model: this.model,
         temperature: 0.5,
-        max_tokens: 100,
+        max_tokens: 200,
       });
 
       return response.choices[0]?.message?.content || '';
     } catch (error: any) {
       console.error('Groq generateText error:', error.message);
-      throw new Error(`Failed to generate text: ${error.message}`);
+      return '';
     }
   }
 
@@ -61,7 +70,7 @@ export class GroqService {
     try {
       const response = await this.groq.chat.completions.create({
         messages: [
-          { role: 'system', content: 'You are a code explainer. Provide clear, beginner-friendly explanations of code.' },
+          { role: 'system', content: 'You are a code explainer. Provide clear, beginner-friendly explanations of code. Use plain English and avoid markdown formatting.' },
           { role: 'user', content: prompt }
         ],
         model: this.model,
@@ -77,12 +86,12 @@ export class GroqService {
   }
 
   async optimizeCode(code: string, language: string): Promise<string> {
-    const prompt = `Optimize this ${language} code for better performance, readability, and best practices. Return only the optimized code:\n\n${code}`;
+    const prompt = `Optimize this ${language} code for better performance, readability, and best practices. Return only the optimized code without any explanations or markdown formatting:\n\n${code}`;
 
     try {
       const response = await this.groq.chat.completions.create({
         messages: [
-          { role: 'system', content: 'You are a code optimization expert. Return only the optimized code without explanations.' },
+          { role: 'system', content: `You are a code optimization expert. Return ONLY the raw optimized code without any markdown formatting, code blocks, or explanations.` },
           { role: 'user', content: prompt }
         ],
         model: this.model,

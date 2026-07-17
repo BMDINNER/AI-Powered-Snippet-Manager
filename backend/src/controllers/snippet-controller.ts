@@ -1,6 +1,6 @@
 import { Response, NextFunction } from 'express';
 import { snippetService } from '../services/snippet-service.js';
-import { SnippetQuery } from '../models/snippet-model.js';
+import { SnippetQuery } from '../types/index.js';
 import { ApiResponse } from '../types/api-types.js';
 import { AuthRequest } from '../middleware/auth.js';
 

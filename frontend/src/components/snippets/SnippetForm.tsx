@@ -66,10 +66,7 @@ export const SnippetForm: React.FC<SnippetFormProps> = ({ snippet, onClose }) =>
   const loadSnippet = async (snippetId: string) => {
     setLoadingSnippet(true);
     try {
-      console.log('Loading snippet with id:', snippetId);
       const data = await getSnippet(snippetId);
-      console.log('Loaded snippet data:', data);
-      console.log('Snippet code:', data.code);
       populateForm(data);
     } catch (error) {
       console.error('Failed to load snippet:', error);
@@ -81,7 +78,6 @@ export const SnippetForm: React.FC<SnippetFormProps> = ({ snippet, onClose }) =>
   };
 
   const populateForm = (snippetData: Snippet) => {
-    console.log('Populating form with:', snippetData);
     setFormData({
       title: snippetData.title || '',
       description: snippetData.description || '',
@@ -103,9 +99,6 @@ export const SnippetForm: React.FC<SnippetFormProps> = ({ snippet, onClose }) =>
         language: formData.language,
         tags: formData.tags.split(',').map((t: string) => t.trim()).filter(Boolean)
       };
-
-      console.log('Submitting snippet data:', data);
-      console.log('Code length:', data.code?.length);
 
       if (id) {
         await updateSnippet(id, data);
@@ -138,11 +131,13 @@ export const SnippetForm: React.FC<SnippetFormProps> = ({ snippet, onClose }) =>
       
       const generated = await generateSnippet(formData.description, formData.language);
       
-      console.log('Generated object:', generated);
-      console.log('Generated code:', generated.code);
-      
-      if (!generated.code) {
-        toast.error('AI returned empty code', { id: 'ai-generate' });
+      if (!generated || !generated.code) {
+        toast.error('AI returned empty code. Please try again with a different description.', { id: 'ai-generate' });
+        return;
+      }
+
+      if (generated.code.length === 0) {
+        toast.error('AI returned empty code. Please try again with a different description.', { id: 'ai-generate' });
         return;
       }
       
@@ -171,7 +166,7 @@ export const SnippetForm: React.FC<SnippetFormProps> = ({ snippet, onClose }) =>
       
       const optimized = await optimizeCode(formData.code, formData.language);
       
-      if (optimized) {
+      if (optimized && optimized.length > 0) {
         setFormData({
           ...formData,
           code: optimized
