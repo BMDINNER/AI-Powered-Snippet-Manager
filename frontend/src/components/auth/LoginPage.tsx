@@ -12,9 +12,6 @@ import {
   faArrowRight,
   faCode
 } from '@fortawesome/free-solid-svg-icons';
-import { faGoogle, faGithub } from '@fortawesome/free-brands-svg-icons';
-
-const AUTH_URL = import.meta.env.VITE_AUTH_URL || 'http://localhost:3001';
 
 export const LoginPage: React.FC = () => {
   const navigate = useNavigate();
@@ -39,14 +36,20 @@ export const LoginPage: React.FC = () => {
       });
       navigate('/snippets');
     } catch (err: any) {
-      setError(err.message || 'Invalid email or password');
+      console.error('Login error:', err);
+      
+      if (err.response?.status === 401) {
+        setError('Invalid email or password. Please try again.');
+      } else if (err.response?.data?.message) {
+        setError(err.response.data.message);
+      } else if (err.message) {
+        setError(err.message);
+      } else {
+        setError('Something went wrong. Please try again.');
+      }
     } finally {
       setLoading(false);
     }
-  };
-
-  const handleOAuthLogin = (provider: string) => {
-    window.location.href = `${AUTH_URL}/auth/oauth/${provider}`;
   };
 
   return (
@@ -100,34 +103,6 @@ export const LoginPage: React.FC = () => {
             >
               Sign in
             </Button>
-
-            <div className="relative my-8">
-              <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-gray-200"></div>
-              </div>
-              <div className="relative flex justify-center text-sm">
-                <span className="px-4 bg-white text-gray-500">Or continue with</span>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-3">
-              <button
-                type="button"
-                onClick={() => handleOAuthLogin('google')}
-                className="flex items-center justify-center px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
-              >
-                <FontAwesomeIcon icon={faGoogle} className="h-5 w-5 text-red-500 mr-2" />
-                <span className="text-sm text-gray-700">Google</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => handleOAuthLogin('github')}
-                className="flex items-center justify-center px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
-              >
-                <FontAwesomeIcon icon={faGithub} className="h-5 w-5 text-gray-900 mr-2" />
-                <span className="text-sm text-gray-700">GitHub</span>
-              </button>
-            </div>
 
             <p className="text-center text-gray-600">
               Don't have an account?{' '}

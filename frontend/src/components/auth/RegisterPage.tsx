@@ -12,7 +12,6 @@ import {
   faLock, 
   faArrowRight
 } from '@fortawesome/free-solid-svg-icons';
-import { faGoogle, faGithub } from '@fortawesome/free-brands-svg-icons';
 import { faCode } from '@fortawesome/free-solid-svg-icons';
 import toast from 'react-hot-toast';
 
@@ -45,15 +44,20 @@ export const RegisterPage: React.FC = () => {
       localStorage.removeItem('userData');
       navigate('/login');
     } catch (err: any) {
-      setError(err.message || 'Registration failed');
+      console.error('Registration error:', err);
+      
+      if (err.response?.status === 400 && err.response?.data?.message?.includes('already exists')) {
+        setError('This email is already registered. Please login instead.');
+      } else if (err.response?.data?.message) {
+        setError(err.response.data.message);
+      } else if (err.message) {
+        setError(err.message);
+      } else {
+        setError('Something went wrong. Please try again.');
+      }
     } finally {
       setLoading(false);
     }
-  };
-
-  const handleOAuthLogin = (provider: string) => {
-    const authUrl = import.meta.env.VITE_AUTH_URL || 'http://localhost:3001';
-    window.location.href = `${authUrl}/auth/oauth/${provider}`;
   };
 
   return (
@@ -82,7 +86,7 @@ export const RegisterPage: React.FC = () => {
                 onChange={(e) => setFormData({ ...formData, username: e.target.value })}
                 icon={faUser}
                 required
-                placeholder="username"
+                placeholder="johndoe"
               />
 
               <Input
@@ -117,34 +121,6 @@ export const RegisterPage: React.FC = () => {
             >
               Sign Up
             </Button>
-
-            <div className="relative my-8">
-              <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-gray-200"></div>
-              </div>
-              <div className="relative flex justify-center text-sm">
-                <span className="px-4 bg-white text-gray-500">Or continue with</span>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-3">
-              <button
-                type="button"
-                onClick={() => handleOAuthLogin('google')}
-                className="flex items-center justify-center px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
-              >
-                <FontAwesomeIcon icon={faGoogle} className="h-5 w-5 text-red-500 mr-2" />
-                <span className="text-sm text-gray-700">Google</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => handleOAuthLogin('github')}
-                className="flex items-center justify-center px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
-              >
-                <FontAwesomeIcon icon={faGithub} className="h-5 w-5 text-gray-900 mr-2" />
-                <span className="text-sm text-gray-700">GitHub</span>
-              </button>
-            </div>
 
             <p className="text-center text-gray-600">
               Already have an account?{' '}

@@ -125,7 +125,7 @@ export const AIChatPage: React.FC = () => {
   };
 
   return (
-    <div className="flex flex-col h-[calc(100vh-120px)]">
+    <div className="flex flex-col h-[calc(100vh-100px)] w-full">
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-3">
           <FontAwesomeIcon icon={faRobot} className="text-2xl text-purple-600" />
@@ -187,14 +187,14 @@ export const AIChatPage: React.FC = () => {
         )}
       </div>
 
-      <div className="flex-1 overflow-y-auto space-y-4 mb-4 bg-gray-50 rounded-lg p-4">
+      <div className="flex-1 overflow-y-auto space-y-4 mb-4 bg-gray-50 rounded-lg p-4 w-full">
         {messages.map(message => (
           <div
             key={message.id}
             className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
           >
             <div
-              className={`max-w-[80%] rounded-lg p-3 ${
+              className={`max-w-[85%] rounded-lg p-3 ${
                 message.role === 'user'
                   ? 'bg-purple-600 text-white'
                   : message.type === 'code'
@@ -230,7 +230,7 @@ export const AIChatPage: React.FC = () => {
         )}
       </div>
 
-      <form onSubmit={handleSubmit} className="flex gap-2">
+      <form onSubmit={handleSubmit} className="flex gap-2 w-full">
         <Input
           value={input}
           onChange={(e) => setInput(e.target.value)}
@@ -241,7 +241,7 @@ export const AIChatPage: React.FC = () => {
               ? 'Paste code to explain...'
               : 'Paste code to improve...'
           }
-          className="flex-1"
+          className="flex-1 w-full"
           disabled={loading}
         />
         <Button

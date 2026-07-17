@@ -70,13 +70,13 @@ export const SnippetItem: React.FC<SnippetItemProps> = ({ snippet, onTagClick })
       
       {snippet.tags && snippet.tags.length > 0 && (
         <div className="flex flex-wrap gap-1 mt-3">
+          <FontAwesomeIcon icon={faTag} className="h-3 w-3 text-gray-400 mt-1 mr-1" />
           {snippet.tags.slice(0, 3).map(tag => (
             <button
               key={tag}
               onClick={(e) => handleTagClick(e, tag)}
               className="px-2 py-0.5 bg-gray-100 text-gray-600 text-xs rounded-full flex items-center gap-1 hover:bg-gray-200 hover:text-gray-800 transition-colors cursor-pointer"
             >
-              <FontAwesomeIcon icon={faTag} className="h-2 w-2" />
               {tag}
             </button>
           ))}

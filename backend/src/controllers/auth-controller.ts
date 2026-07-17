@@ -12,9 +12,7 @@ export const login = async (req: Request, res: Response) => {
   try {
     const { email, password } = req.body;
     
-    
     if (!config.projectId) {
-      console.error('Project ID not configured in environment');
       return res.status(500).json({
         success: false,
         message: 'Server configuration error: Project ID missing'
@@ -22,13 +20,11 @@ export const login = async (req: Request, res: Response) => {
     }
     
     if (!config.apiKey) {
-      console.error('API Key not configured in environment');
       return res.status(500).json({
         success: false,
         message: 'Server configuration error: API Key missing'
       });
     }
-    
     
     const response = await axios.post(
       `${config.authServiceUrl}/auth/project/login`,
@@ -43,12 +39,28 @@ export const login = async (req: Request, res: Response) => {
     res.json(response.data);
   } catch (error: any) {
     console.error('Login error:', error.message);
+    
     if (error.response) {
-      console.error('Auth service response:', error.response.data);
+      const status = error.response.status;
+      const message = error.response.data?.message || error.response.data?.error || 'Login failed';
+      
+      if (status === 401) {
+        return res.status(401).json({
+          success: false,
+          message: 'Invalid email or password'
+        });
+      }
+      
+      return res.status(status).json({
+        success: false,
+        message: message
+      });
     }
-    const status = error.response?.status || 500;
-    const message = error.response?.data?.message || error.message;
-    res.status(status).json({ success: false, message });
+    
+    res.status(500).json({
+      success: false,
+      message: 'Something went wrong. Please try again.'
+    });
   }
 };
 
@@ -57,7 +69,6 @@ export const register = async (req: Request, res: Response) => {
     const { email, password, username } = req.body;
     
     if (!config.projectId) {
-      console.error('Project ID not configured in environment');
       return res.status(500).json({
         success: false,
         message: 'Server configuration error: Project ID missing'
@@ -65,13 +76,11 @@ export const register = async (req: Request, res: Response) => {
     }
     
     if (!config.apiKey) {
-      console.error('API Key not configured in environment');
       return res.status(500).json({
         success: false,
         message: 'Server configuration error: API Key missing'
       });
     }
-    
     
     const response = await axios.post(
       `${config.authServiceUrl}/auth/project/register`,
@@ -87,12 +96,28 @@ export const register = async (req: Request, res: Response) => {
     res.json(response.data);
   } catch (error: any) {
     console.error('Register error:', error.message);
+    
     if (error.response) {
-      console.error('Auth service response:', error.response.data);
+      const status = error.response.status;
+      const message = error.response.data?.message || error.response.data?.error || 'Registration failed';
+      
+      if (status === 400 && message.includes('already exists')) {
+        return res.status(400).json({
+          success: false,
+          message: 'Email already registered'
+        });
+      }
+      
+      return res.status(status).json({
+        success: false,
+        message: message
+      });
     }
-    const status = error.response?.status || 500;
-    const message = error.response?.data?.message || error.message;
-    res.status(status).json({ success: false, message });
+    
+    res.status(500).json({
+      success: false,
+      message: 'Something went wrong. Please try again.'
+    });
   }
 };
 
@@ -122,7 +147,6 @@ export const logout = async (req: Request, res: Response) => {
   try {
     const { refreshToken } = req.body;
     const token = req.headers.authorization?.split(' ')[1];
-    
     
     const response = await axios.post(
       `${config.authServiceUrl}/auth/logout`,
@@ -216,7 +240,6 @@ export const changePassword = async (req: Request, res: Response) => {
   try {
     const { currentPassword, newPassword } = req.body;
     const token = req.headers.authorization?.split(' ')[1];
-    
     
     if (!currentPassword || !newPassword) {
       return res.status(400).json({

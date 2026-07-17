@@ -15,7 +15,8 @@ import {
   faRobot,
   faComment,
   faClock,
-  faCode
+  faCode,
+  faTag
 } from '@fortawesome/free-solid-svg-icons';
 import toast from 'react-hot-toast';
 import type { Snippet } from '../../types';
@@ -23,7 +24,7 @@ import type { Snippet } from '../../types';
 export const SnippetDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { getSnippet, deleteSnippet, loading: snippetsLoading } = useSnippets();
+  const { getSnippet, deleteSnippet, updateSnippet, loading: snippetsLoading } = useSnippets();
   const { explainCode, optimizeCode, loading: aiLoading } = useAI();
   const [snippet, setSnippet] = useState<Snippet | null>(null);
   const [explanation, setExplanation] = useState<string | null>(null);
@@ -40,6 +41,10 @@ export const SnippetDetail: React.FC = () => {
     try {
       const data = await getSnippet(id!);
       setSnippet(data);
+      if (data.aiExplanation) {
+        setExplanation(data.aiExplanation);
+        setShowExplanation(true);
+      }
     } catch (error) {
       console.error('Failed to load snippet:', error);
       toast.error('Failed to load snippet');
@@ -82,7 +87,13 @@ export const SnippetDetail: React.FC = () => {
       const result = await explainCode(snippet.code, snippet.language);
       setExplanation(result);
       setShowExplanation(true);
-      toast.success('Explanation generated');
+      
+      await updateSnippet(snippet.id, {
+        ...snippet,
+        aiExplanation: result
+      });
+      
+      toast.success('Explanation generated and saved');
     } catch (error) {
       toast.error('Failed to explain code');
     }
@@ -96,11 +107,63 @@ export const SnippetDetail: React.FC = () => {
     
     try {
       const optimized = await optimizeCode(snippet.code, snippet.language);
-      setSnippet({ ...snippet, code: optimized });
+      const updatedSnippet = { ...snippet, code: optimized };
+      setSnippet(updatedSnippet);
+      await updateSnippet(snippet.id, updatedSnippet);
       toast.success('Code optimized');
     } catch (error) {
       toast.error('Failed to optimize code');
     }
+  };
+
+  const highlightExplanation = (text: string): React.ReactNode => {
+    if (!text) return null;
+    
+    const keywords = [
+      'function', 'class', 'variable', 'parameter', 'return', 'loop',
+      'if', 'else', 'switch', 'case', 'break', 'continue', 'async',
+      'await', 'promise', 'callback', 'arrow', 'closure', 'hoisting',
+      'prototype', 'inheritance', 'module', 'export', 'import',
+      'try', 'catch', 'throw', 'error', 'debug', 'console',
+      'const', 'let', 'var', 'new', 'this', 'super', 'extends',
+      'implements', 'interface', 'type', 'enum', 'generator',
+      'iterator', 'map', 'filter', 'reduce', 'forEach', 'set',
+      'get', 'has', 'delete', 'clear', 'entries', 'keys', 'values'
+    ];
+    
+    let parts: React.ReactNode[] = [text];
+    
+    keywords.forEach(keyword => {
+      const regex = new RegExp(`\\b${keyword}\\b`, 'gi');
+      parts = parts.flatMap(part => {
+        if (typeof part === 'string') {
+          const splitParts = part.split(regex);
+          const result: React.ReactNode[] = [];
+          let matchIndex = 0;
+          
+          splitParts.forEach((sub, index) => {
+            if (index > 0) {
+              const matched = part.match(regex);
+              if (matched && matched[matchIndex]) {
+                result.push(
+                  <span key={`${keyword}-${matchIndex}`} className="bg-yellow-100 text-gray-800 px-0.5 rounded font-mono font-semibold">
+                    {matched[matchIndex]}
+                  </span>
+                );
+                matchIndex++;
+              }
+            }
+            if (sub) {
+              result.push(sub);
+            }
+          });
+          return result;
+        }
+        return part;
+      });
+    });
+    
+    return <span className="leading-relaxed">{parts}</span>;
   };
 
   const formatDate = (dateString: string): string => {
@@ -192,6 +255,7 @@ export const SnippetDetail: React.FC = () => {
 
           {snippet.tags && snippet.tags.length > 0 && (
             <div className="flex flex-wrap gap-2">
+              <FontAwesomeIcon icon={faTag} className="h-4 w-4 text-gray-400 mt-1" />
               {snippet.tags.map((tag: string) => (
                 <span key={tag} className="px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded-full">
                   {tag}
@@ -236,8 +300,8 @@ export const SnippetDetail: React.FC = () => {
               Close
             </Button>
           </div>
-          <div className="prose prose-sm max-w-none text-gray-700 whitespace-pre-wrap">
-            {explanation}
+          <div className="prose prose-sm max-w-none text-gray-700 whitespace-pre-wrap bg-gray-50 p-4 rounded-lg">
+            {highlightExplanation(explanation)}
           </div>
         </Card>
       )}
