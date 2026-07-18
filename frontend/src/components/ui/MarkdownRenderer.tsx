@@ -2,7 +2,7 @@ import React from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import rehypeHighlight from 'rehype-highlight';
-import 'highlight.js/styles/github-dark.css';
+import 'highlight.js/styles/atom-one-dark.css';
 
 interface MarkdownRendererProps {
   content: string;
@@ -14,7 +14,12 @@ export const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ content, cla
     <div className={`markdown-renderer ${className}`}>
       <ReactMarkdown
         remarkPlugins={[remarkGfm]}
-        rehypePlugins={[rehypeHighlight]}
+        rehypePlugins={[
+          [rehypeHighlight, {
+            detect: true,
+            ignoreMissing: true,
+          }]
+        ]}
         components={{
           code({ className, children, ...props }) {
             const match = /language-(\w+)/.exec(className || '');
@@ -29,7 +34,7 @@ export const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ content, cla
             }
             
             return (
-              <pre className="bg-gray-900 text-gray-100 p-4 rounded-lg overflow-x-auto font-mono text-sm my-2">
+              <pre className="bg-[#282c34] text-gray-100 p-4 rounded-lg overflow-x-auto font-mono text-sm my-2">
                 <code className={className} {...props}>
                   {String(children).replace(/\n$/, '')}
                 </code>
