@@ -19,6 +19,25 @@ const stripCodeBlock = (code: string): string => {
   return cleaned;
 };
 
+const detectLanguage = (code: string): string => {
+  if (code.includes('function') || code.includes('var') || code.includes('const') || code.includes('let')) {
+    return 'javascript';
+  }
+  if (code.includes('def ') && code.includes(':')) {
+    return 'python';
+  }
+  if (code.includes('public class') || code.includes('System.out.println')) {
+    return 'java';
+  }
+  if (code.includes('<!DOCTYPE html') || code.includes('<html>')) {
+    return 'html';
+  }
+  if (code.includes('SELECT') || code.includes('INSERT INTO')) {
+    return 'sql';
+  }
+  return 'text';
+};
+
 export const generateSnippet = async (req: Request, res: Response) => {
   try {
     const { prompt, language } = req.body;
@@ -52,11 +71,12 @@ export const generateSnippet = async (req: Request, res: Response) => {
     const tagsResponse = await groqService.generateText(tagsPrompt);
     const tags = tagsResponse.split(',').map(t => t.trim().replace(/^["']|["']$/g, '')).filter(Boolean);
 
-    // Store raw code in database
+    const markdownCode = `\`\`\`${language}\n${cleanCode}\n\`\`\``;
+
     res.json({
       success: true,
       data: {
-        code: cleanCode,
+        code: markdownCode,
         language: language,
         title: title,
         description: prompt,
@@ -83,7 +103,9 @@ export const improveSnippet = async (req: Request, res: Response) => {
       });
     }
 
-    const improvedCode = await groqService.optimizeCode(code, 'code');
+    const language = detectLanguage(code);
+
+    const improvedCode = await groqService.optimizeCode(code, language);
     const cleanCode = stripCodeBlock(improvedCode);
 
     if (!cleanCode || cleanCode.length === 0) {
@@ -93,10 +115,12 @@ export const improveSnippet = async (req: Request, res: Response) => {
       });
     }
 
+    const markdownCode = `\`\`\`${language}\n${cleanCode}\n\`\`\``;
+
     res.json({
       success: true,
       data: {
-        code: cleanCode
+        code: markdownCode
       }
     });
   } catch (error: any) {

@@ -40,14 +40,17 @@ export class SnippetController {
         userId: req.user.userId
       });
       
+      const { userId: _, ...snippetWithoutUserId } = snippet;
+      
       const response: ApiResponse = {
         success: true,
-        data: snippet,
+        data: snippetWithoutUserId,
         message: 'Snippet created successfully'
       };
       
       res.status(201).json(response);
     } catch (error) {
+      console.error('Create snippet error:', error);
       next(error);
     }
   }
@@ -76,9 +79,11 @@ export class SnippetController {
         return;
       }
       
+      const { userId: _, ...snippetWithoutUserId } = snippet;
+      
       const response: ApiResponse = {
         success: true,
-        data: snippet
+        data: snippetWithoutUserId
       };
       
       res.json(response);
@@ -108,9 +113,11 @@ export class SnippetController {
 
       const result = await snippetService.getAllSnippets(query);
       
+      const snippetsWithoutUserId = result.snippets.map(({ userId: _, ...snippet }) => snippet);
+      
       const response: ApiResponse = {
         success: true,
-        data: result.snippets,
+        data: snippetsWithoutUserId,
         meta: {
           total: result.total,
           page: query.page || 1,
@@ -159,9 +166,11 @@ export class SnippetController {
         aiExplanation
       }, req.user.userId);
       
+      const { userId: _, ...snippetWithoutUserId } = snippet;
+      
       const response: ApiResponse = {
         success: true,
-        data: snippet,
+        data: snippetWithoutUserId,
         message: 'Snippet updated successfully'
       };
       
