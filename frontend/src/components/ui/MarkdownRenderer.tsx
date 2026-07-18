@@ -1,7 +1,8 @@
 import React from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-import 'highlight.js/styles/github.css';
+import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
+import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
 
 interface MarkdownRendererProps {
   content: string;
@@ -31,34 +32,23 @@ export const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ content, cla
             }
             
             const language = match ? match[1] : 'text';
+            const codeString = String(children).replace(/\n$/, '');
             
             return (
-              <pre 
-                style={{
-                  backgroundColor: '#f6f8fa',
-                  color: '#1f2937',
-                  padding: '16px',
+              <SyntaxHighlighter
+                language={language}
+                style={vscDarkPlus}
+                customStyle={{
+                  backgroundColor: '#282c34',
                   borderRadius: '8px',
-                  overflowX: 'auto',
-                  fontFamily: 'monospace',
+                  padding: '16px',
                   fontSize: '14px',
-                  border: '1px solid #e5e7eb',
-                  margin: '8px 0'
+                  margin: '8px 0',
                 }}
+                showLineNumbers={false}
               >
-                <code 
-                  className={`hljs language-${language}`}
-                  style={{
-                    display: 'block',
-                    overflowX: 'auto',
-                    padding: '0.5em',
-                    color: '#1f2937'
-                  }}
-                  {...props}
-                >
-                  {String(children).replace(/\n$/, '')}
-                </code>
-              </pre>
+                {codeString}
+              </SyntaxHighlighter>
             );
           },
           h1({ children }) {
