@@ -86,7 +86,7 @@ export const RegisterPage: React.FC = () => {
                 onChange={(e) => setFormData({ ...formData, username: e.target.value })}
                 icon={faUser}
                 required
-                placeholder="johndoe"
+                placeholder="your username"
               />
 
               <Input
