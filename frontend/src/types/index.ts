@@ -80,6 +80,7 @@ export interface AIGenerateRequest {
 export interface AIOptimizeRequest {
   code: string;
   language: string;
+  instructions?: string;
 }
 
 export interface AIExplainRequest {

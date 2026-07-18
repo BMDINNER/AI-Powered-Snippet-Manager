@@ -50,27 +50,32 @@ export const useAI = () => {
   }, []);
 
   const optimizeCode = useCallback(async (code: string, language: string): Promise<string> => {
-    setLoading(true);
-    setError(null);
+  setLoading(true);
+  setError(null);
+  
+  try {
+    // Make sure we're sending the right fields
+    const result = await aiService.optimizeCode({ 
+      code: code, 
+      language: language,
+      instructions: 'Improve the code quality and readability'  // Added this instruction to optimize code feature
+    });
     
-    try {
-      const result = await aiService.optimizeCode({ code, language });
-      
-      if (!result || !result.optimizedCode) {
-        throw new Error('AI returned empty optimized code');
-      }
-      
-      toast.success('Code optimized successfully');
-      return result.optimizedCode;
-    } catch (err: any) {
-      const message = err.response?.data?.message || err.message || 'Failed to optimize code';
-      setError(message);
-      toast.error(message);
-      throw err;
-    } finally {
-      setLoading(false);
+    if (!result || !result.optimizedCode) {
+      throw new Error('AI returned empty optimized code');
     }
-  }, []);
+    
+    toast.success('Code optimized successfully');
+    return result.optimizedCode;
+  } catch (err: any) {
+    const message = err.response?.data?.message || err.message || 'Failed to optimize code';
+    setError(message);
+    toast.error(message);
+    throw err;
+  } finally {
+    setLoading(false);
+  }
+}, []);
 
   const explainCode = useCallback(async (code: string, language: string): Promise<string> => {
     setLoading(true);

@@ -94,17 +94,30 @@ export const generateSnippet = async (req: Request, res: Response) => {
 
 export const improveSnippet = async (req: Request, res: Response) => {
   try {
-    const { code, instructions } = req.body;
+    const { code, instructions, language } = req.body;
 
-    if (!code || !instructions) {
+    console.log('Improve snippet request:', { 
+      codeLength: code?.length, 
+      instructions, 
+      language 
+    });
+
+    if (!code) {
       return res.status(400).json({
         success: false,
-        message: 'Code and instructions are required'
+        message: 'Code is required'
       });
     }
 
-    const language = detectLanguage(code);
-    const improvedCode = await groqService.optimizeCode(code, language);
+    if (!instructions) {
+      return res.status(400).json({
+        success: false,
+        message: 'Instructions are required'
+      });
+    }
+
+    const detectedLanguage = language || detectLanguage(code);
+    const improvedCode = await groqService.optimizeCode(code, detectedLanguage);
     const cleanCode = stripCodeBlock(improvedCode);
 
     if (!cleanCode || cleanCode.length === 0) {
@@ -114,7 +127,6 @@ export const improveSnippet = async (req: Request, res: Response) => {
       });
     }
 
-    // Return the code directly, not wrapped in markdown
     res.json({
       success: true,
       data: {
