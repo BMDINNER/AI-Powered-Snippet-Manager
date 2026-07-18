@@ -122,7 +122,7 @@
     margin: 0.5rem 0;
   }
 
-  .markdown-renderer .hljs {
+  .hljs {
     display: block;
     overflow-x: auto;
     padding: 0.5em;
@@ -130,81 +130,105 @@
     color: #abb2bf;
   }
 
-  .markdown-renderer .hljs-comment,
-  .markdown-renderer .hljs-quote {
+  .hljs-comment,
+  .hljs-quote {
     color: #5c6370;
     font-style: italic;
   }
 
-  .markdown-renderer .hljs-keyword,
-  .markdown-renderer .hljs-selector-tag {
+  .hljs-keyword,
+  .hljs-selector-tag {
     color: #c678dd;
   }
 
-  .markdown-renderer .hljs-string,
-  .markdown-renderer .hljs-doctag {
+  .hljs-string,
+  .hljs-doctag {
     color: #98c379;
   }
 
-  .markdown-renderer .hljs-number,
-  .markdown-renderer .hljs-literal {
+  .hljs-number,
+  .hljs-literal {
     color: #d19a66;
   }
 
-  .markdown-renderer .hljs-function .hljs-title,
-  .markdown-renderer .hljs-title.function_ {
+  .hljs-function .hljs-title,
+  .hljs-title.function_ {
     color: #61afef;
   }
 
-  .markdown-renderer .hljs-built_in,
-  .markdown-renderer .hljs-builtin-name {
+  .hljs-built_in,
+  .hljs-builtin-name {
     color: #e6c07b;
   }
 
-  .markdown-renderer .hljs-attr,
-  .markdown-renderer .hljs-variable {
+  .hljs-attr,
+  .hljs-variable {
     color: #e06c75;
   }
 
-  .markdown-renderer .hljs-class .hljs-title {
+  .hljs-class .hljs-title {
     color: #e5c07b;
   }
 
-  .markdown-renderer .hljs-operator {
+  .hljs-operator {
     color: #56b6c2;
   }
 
-  .markdown-renderer .hljs-punctuation {
+  .hljs-punctuation {
     color: #abb2bf;
   }
 
-  .markdown-renderer .hljs-tag {
+  .hljs-tag {
     color: #e06c75;
   }
 
-  .markdown-renderer .hljs-name {
+  .hljs-name {
     color: #61afef;
   }
 
-  .markdown-renderer .hljs-section,
-  .markdown-renderer .hljs-title {
+  .hljs-section,
+  .hljs-title {
     color: #61afef;
   }
 
-  .markdown-renderer .hljs-type {
+  .hljs-type {
     color: #e5c07b;
   }
 
-  .markdown-renderer .hljs-symbol,
-  .markdown-renderer .hljs-bullet {
+  .hljs-symbol,
+  .hljs-bullet {
     color: #61afef;
   }
 
-  .markdown-renderer .hljs-emphasis {
+  .hljs-emphasis {
     font-style: italic;
   }
 
-  .markdown-renderer .hljs-strong {
+  .hljs-strong {
     font-weight: bold;
+  }
+
+  .hljs-attribute {
+    color: #e06c75;
+  }
+
+  .hljs-meta {
+    color: #abb2bf;
+  }
+
+  .hljs-selector-id {
+    color: #e06c75;
+  }
+
+  .hljs-selector-class {
+    color: #e06c75;
+  }
+
+  .hljs-selector-pseudo {
+    color: #c678dd;
+  }
+
+  .hljs-regexp {
+    color: #56b6c2;
   }
 }
