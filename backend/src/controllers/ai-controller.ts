@@ -96,12 +96,6 @@ export const improveSnippet = async (req: Request, res: Response) => {
   try {
     const { code, instructions, language } = req.body;
 
-    console.log('Improve snippet request:', { 
-      codeLength: code?.length, 
-      instructions, 
-      language 
-    });
-
     if (!code) {
       return res.status(400).json({
         success: false,
@@ -130,7 +124,7 @@ export const improveSnippet = async (req: Request, res: Response) => {
     res.json({
       success: true,
       data: {
-        code: cleanCode
+        optimizedCode: cleanCode
       }
     });
   } catch (error: any) {

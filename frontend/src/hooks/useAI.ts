@@ -14,14 +14,11 @@ export const useAI = () => {
     try {
       const result = await aiService.generateSnippet({ prompt, language });
       
-      
       if (!result || !result.code) {
-        console.error('No code returned from API:', result);
         throw new Error('AI returned empty code. Please try again with a different description.');
       }
 
       if (result.code.length === 0) {
-        console.error('Empty code string returned:', result);
         throw new Error('AI returned empty code. Please try again with a different description.');
       }
       
@@ -35,12 +32,10 @@ export const useAI = () => {
         userId: ''
       };
       
-      
       toast.success('Snippet generated successfully');
       return snippetData;
     } catch (err: any) {
       const message = err.response?.data?.message || err.message || 'Failed to generate snippet';
-      console.error('useAI.generateSnippet error:', err);
       setError(message);
       toast.error(message);
       throw err;
@@ -50,32 +45,31 @@ export const useAI = () => {
   }, []);
 
   const optimizeCode = useCallback(async (code: string, language: string): Promise<string> => {
-  setLoading(true);
-  setError(null);
-  
-  try {
-    // Make sure we're sending the right fields
-    const result = await aiService.optimizeCode({ 
-      code: code, 
-      language: language,
-      instructions: 'Improve the code quality and readability'  // Added this instruction to optimize code feature
-    });
+    setLoading(true);
+    setError(null);
     
-    if (!result || !result.optimizedCode) {
-      throw new Error('AI returned empty optimized code');
+    try {
+      const result = await aiService.optimizeCode({ 
+        code, 
+        language,
+        instructions: 'Improve the code quality and readability'
+      });
+      
+      if (!result || !result.optimizedCode) {
+        throw new Error('AI returned empty optimized code');
+      }
+      
+      toast.success('Code optimized successfully');
+      return result.optimizedCode;
+    } catch (err: any) {
+      const message = err.response?.data?.message || err.message || 'Failed to optimize code';
+      setError(message);
+      toast.error(message);
+      throw err;
+    } finally {
+      setLoading(false);
     }
-    
-    toast.success('Code optimized successfully');
-    return result.optimizedCode;
-  } catch (err: any) {
-    const message = err.response?.data?.message || err.message || 'Failed to optimize code';
-    setError(message);
-    toast.error(message);
-    throw err;
-  } finally {
-    setLoading(false);
-  }
-}, []);
+  }, []);
 
   const explainCode = useCallback(async (code: string, language: string): Promise<string> => {
     setLoading(true);
