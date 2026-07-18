@@ -11,7 +11,7 @@ import { SnippetForm } from './components/snippets/SnippetForm';
 import { SnippetDetail } from './components/snippets/SnippetDetail';
 import { LoadingSpinner } from './components/ui/LoadingSpinner';
 import { AIChatPage } from './components/ai/ai-chat-page';
-
+import 'highlight.js/styles/atom-one-dark.css';
 const PrivateRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { isAuthenticated, loading } = useAuth();
   if (loading) return <LoadingSpinner size="lg" className="py-12" />;
