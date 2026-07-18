@@ -4,6 +4,7 @@ import { Card } from '../ui/Card';
 import { Button } from '../ui/Button';
 import { TextArea } from '../ui/Input';
 import { LoadingSpinner } from '../ui/LoadingSpinner';
+import { MarkdownRenderer } from '../ui/MarkdownRenderer';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { 
   faRobot, 
@@ -90,7 +91,6 @@ export const AIChat: React.FC<AIChatProps> = ({ onInsertCode }) => {
       <div className="flex-1 overflow-y-auto mb-4 space-y-4">
         {messages.map((msg, idx) => {
           const code = extractCodeFromMessage(msg.content);
-          const displayContent = code ? msg.content.replace(/```[\s\S]*?```/, '').trim() : msg.content;
 
           return (
             <div
@@ -114,26 +114,21 @@ export const AIChat: React.FC<AIChatProps> = ({ onInsertCode }) => {
                   </span>
                 </div>
                 
-                {displayContent && (
-                  <div className="whitespace-pre-wrap text-sm">{displayContent}</div>
+                {msg.role === 'user' ? (
+                  <div className="whitespace-pre-wrap text-sm">{msg.content}</div>
+                ) : (
+                  <MarkdownRenderer content={msg.content} />
                 )}
                 
-                {code && (
-                  <div className="mt-3">
-                    <pre className="p-3 rounded-lg text-xs overflow-x-auto border border-gray-200">
-                      <code className="hljs">{code}</code>
-                    </pre>
-                    {onInsertCode && (
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        className="mt-2 border-red-300 text-red-600 hover:bg-red-50"
-                        onClick={() => handleInsertCode(code)}
-                      >
-                        Insert Code
-                      </Button>
-                    )}
-                  </div>
+                {code && onInsertCode && (
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="mt-3 border-red-300 text-red-600 hover:bg-red-50"
+                    onClick={() => handleInsertCode(code)}
+                  >
+                    Insert Code
+                  </Button>
                 )}
               </div>
             </div>
