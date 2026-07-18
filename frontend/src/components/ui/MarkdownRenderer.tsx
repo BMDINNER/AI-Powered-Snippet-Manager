@@ -14,6 +14,9 @@ export const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ content, cla
     return null;
   }
 
+  // Ensure the content is treated as raw markdown
+  const markdownContent = String(content);
+
   return (
     <div className={`markdown-renderer ${className}`}>
       <ReactMarkdown
@@ -141,7 +144,7 @@ export const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ content, cla
           },
         }}
       >
-        {content}
+        {markdownContent}
       </ReactMarkdown>
     </div>
   );
