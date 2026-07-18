@@ -52,12 +52,11 @@ export const generateSnippet = async (req: Request, res: Response) => {
     const tagsResponse = await groqService.generateText(tagsPrompt);
     const tags = tagsResponse.split(',').map(t => t.trim().replace(/^["']|["']$/g, '')).filter(Boolean);
 
-    const markdownCode = `\`\`\`${language}\n${cleanCode}\n\`\`\``;
-
+    // Store raw code in database
     res.json({
       success: true,
       data: {
-        code: markdownCode,
+        code: cleanCode,
         language: language,
         title: title,
         description: prompt,
