@@ -33,8 +33,29 @@ export const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ content, cla
             const language = match ? match[1] : 'text';
             
             return (
-              <pre className="bg-[#f6f8fa] text-gray-900 p-4 rounded-lg overflow-x-auto font-mono text-sm my-2 border border-gray-200">
-                <code className={`hljs language-${language}`} {...props}>
+              <pre 
+                style={{
+                  backgroundColor: '#f6f8fa',
+                  color: '#1f2937',
+                  padding: '16px',
+                  borderRadius: '8px',
+                  overflowX: 'auto',
+                  fontFamily: 'monospace',
+                  fontSize: '14px',
+                  border: '1px solid #e5e7eb',
+                  margin: '8px 0'
+                }}
+              >
+                <code 
+                  className={`hljs language-${language}`}
+                  style={{
+                    display: 'block',
+                    overflowX: 'auto',
+                    padding: '0.5em',
+                    color: '#1f2937'
+                  }}
+                  {...props}
+                >
                   {String(children).replace(/\n$/, '')}
                 </code>
               </pre>
