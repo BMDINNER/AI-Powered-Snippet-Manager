@@ -233,9 +233,7 @@ export const SnippetDetail: React.FC = () => {
         </div>
         
         {snippet.code ? (
-          <pre className="p-4 rounded-lg overflow-x-auto font-mono text-sm border border-gray-200">
-            <code className="hljs">{snippet.code}</code>
-          </pre>
+          <MarkdownRenderer content={`\`\`\`${snippet.language}\n${snippet.code}\n\`\`\``} />
         ) : (
           <div className="p-4 rounded-lg text-center border border-gray-200">
             No code available

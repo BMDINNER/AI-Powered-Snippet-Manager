@@ -91,9 +91,6 @@ export const AIChat: React.FC<AIChatProps> = ({ onInsertCode }) => {
       <div className="flex-1 overflow-y-auto mb-4 space-y-4">
         {messages.map((msg, idx) => {
           const code = extractCodeFromMessage(msg.content);
-          
-          console.log('AIChat - Message content:', msg.content);
-          console.log('AIChat - Extracted code:', code);
 
           return (
             <div
@@ -120,9 +117,7 @@ export const AIChat: React.FC<AIChatProps> = ({ onInsertCode }) => {
                 {msg.role === 'user' ? (
                   <div className="whitespace-pre-wrap text-sm">{msg.content}</div>
                 ) : (
-                  <div style={{ border: '3px solid red', padding: '8px' }}>
-                    <MarkdownRenderer content={msg.content} />
-                  </div>
+                  <MarkdownRenderer content={msg.content} />
                 )}
                 
                 {code && onInsertCode && (
