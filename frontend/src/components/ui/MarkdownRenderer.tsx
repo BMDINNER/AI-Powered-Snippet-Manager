@@ -1,6 +1,7 @@
 import React from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
+import 'highlight.js/styles/github.css';
 
 interface MarkdownRendererProps {
   content: string;
@@ -8,6 +9,10 @@ interface MarkdownRendererProps {
 }
 
 export const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ content, className = '' }) => {
+  if (!content) {
+    return null;
+  }
+
   return (
     <div className={`markdown-renderer ${className}`}>
       <ReactMarkdown
@@ -28,7 +33,7 @@ export const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ content, cla
             const language = match ? match[1] : 'text';
             
             return (
-              <pre className="bg-[#282c34] text-gray-100 p-4 rounded-lg overflow-x-auto font-mono text-sm my-2">
+              <pre className="bg-[#f6f8fa] text-gray-900 p-4 rounded-lg overflow-x-auto font-mono text-sm my-2 border border-gray-200">
                 <code className={`hljs language-${language}`} {...props}>
                   {String(children).replace(/\n$/, '')}
                 </code>
@@ -43,6 +48,15 @@ export const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ content, cla
           },
           h3({ children }) {
             return <h3 className="text-lg font-semibold text-gray-800 my-2">{children}</h3>;
+          },
+          h4({ children }) {
+            return <h4 className="text-base font-semibold text-gray-800 my-2">{children}</h4>;
+          },
+          h5({ children }) {
+            return <h5 className="text-sm font-semibold text-gray-800 my-1">{children}</h5>;
+          },
+          h6({ children }) {
+            return <h6 className="text-xs font-semibold text-gray-800 my-1">{children}</h6>;
           },
           p({ children }) {
             return <p className="text-gray-700 my-2 leading-relaxed">{children}</p>;
@@ -84,11 +98,35 @@ export const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ content, cla
               </div>
             );
           },
+          thead({ children }) {
+            return <thead className="bg-gray-50">{children}</thead>;
+          },
+          tbody({ children }) {
+            return <tbody>{children}</tbody>;
+          },
+          tr({ children }) {
+            return <tr className="border-b border-gray-200">{children}</tr>;
+          },
           th({ children }) {
-            return <th className="border border-gray-300 px-4 py-2 bg-gray-100 font-semibold">{children}</th>;
+            return <th className="border border-gray-300 px-4 py-2 bg-gray-100 font-semibold text-left">{children}</th>;
           },
           td({ children }) {
             return <td className="border border-gray-300 px-4 py-2">{children}</td>;
+          },
+          hr() {
+            return <hr className="my-4 border-gray-300" />;
+          },
+          img({ src, alt }) {
+            return <img src={src} alt={alt} className="max-w-full h-auto rounded-lg my-2" />;
+          },
+          strong({ children }) {
+            return <strong className="font-bold text-gray-900">{children}</strong>;
+          },
+          em({ children }) {
+            return <em className="italic">{children}</em>;
+          },
+          del({ children }) {
+            return <del className="line-through text-gray-500">{children}</del>;
           },
         }}
       >
