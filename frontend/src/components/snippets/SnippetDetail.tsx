@@ -233,11 +233,11 @@ export const SnippetDetail: React.FC = () => {
         </div>
         
         {snippet.code ? (
-          <pre className="bg-[#282c34] text-gray-100 p-4 rounded-lg overflow-x-auto font-mono text-sm">
+          <pre className="bg-white text-gray-900 p-4 rounded-lg overflow-x-auto font-mono text-sm border border-gray-200">
             <code className="hljs">{snippet.code}</code>
           </pre>
         ) : (
-          <div className="bg-[#282c34] text-gray-400 p-4 rounded-lg text-center">
+          <div className="bg-white text-gray-400 p-4 rounded-lg text-center border border-gray-200">
             No code available
           </div>
         )}
