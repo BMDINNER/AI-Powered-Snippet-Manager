@@ -120,8 +120,8 @@ export const AIChat: React.FC<AIChatProps> = ({ onInsertCode }) => {
                 
                 {code && (
                   <div className="mt-3">
-                    <pre className="bg-gray-900 text-gray-100 p-3 rounded-lg text-xs overflow-x-auto">
-                      <code>{code}</code>
+                    <pre className="p-3 rounded-lg text-xs overflow-x-auto border border-gray-200">
+                      <code className="hljs">{code}</code>
                     </pre>
                     {onInsertCode && (
                       <Button
