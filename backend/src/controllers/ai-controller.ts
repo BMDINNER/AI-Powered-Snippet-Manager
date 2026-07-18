@@ -23,7 +23,6 @@ export const generateSnippet = async (req: Request, res: Response) => {
   try {
     const { prompt, language } = req.body;
 
-
     if (!prompt || !language) {
       return res.status(400).json({
         success: false,
@@ -32,7 +31,6 @@ export const generateSnippet = async (req: Request, res: Response) => {
     }
 
     const code = await groqService.generateCode(prompt, language);
-
     const cleanCode = stripCodeBlock(code);
 
     if (!cleanCode || cleanCode.length === 0) {
@@ -54,19 +52,18 @@ export const generateSnippet = async (req: Request, res: Response) => {
     const tagsResponse = await groqService.generateText(tagsPrompt);
     const tags = tagsResponse.split(',').map(t => t.trim().replace(/^["']|["']$/g, '')).filter(Boolean);
 
-    const responseData = {
+    const markdownCode = `\`\`\`${language}\n${cleanCode}\n\`\`\``;
+
+    res.json({
       success: true,
       data: {
-        code: cleanCode,
+        code: markdownCode,
         language: language,
         title: title,
         description: prompt,
         tags: tags.length > 0 ? tags : ['code', 'snippet']
       }
-    };
-
-
-    res.json(responseData);
+    });
   } catch (error: any) {
     console.error('Generate snippet error:', error);
     res.status(500).json({
@@ -135,7 +132,7 @@ export const explainCode = async (req: Request, res: Response) => {
     res.json({
       success: true,
       data: {
-        explanation
+        explanation: explanation
       }
     });
   } catch (error: any) {
@@ -163,7 +160,7 @@ export const chatWithAI = async (req: Request, res: Response) => {
     res.json({
       success: true,
       data: {
-        response
+        response: response
       }
     });
   } catch (error: any) {
