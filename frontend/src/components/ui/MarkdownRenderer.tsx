@@ -16,7 +16,6 @@ export const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ content, cla
 
   let cleanContent = content.trim();
   
-
   const isMarkdown = cleanContent.includes('```') || 
       cleanContent.includes('`') || 
       cleanContent.includes('**') || 
