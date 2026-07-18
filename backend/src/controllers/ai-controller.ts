@@ -147,7 +147,16 @@ export const explainCode = async (req: Request, res: Response) => {
       });
     }
 
-    const explanation = await groqService.explainCode(code, 'code');
+    const cleanCode = stripCodeBlock(code);
+    
+    if (!cleanCode || cleanCode.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'No valid code to explain'
+      });
+    }
+
+    const explanation = await groqService.explainCode(cleanCode, 'code');
 
     if (!explanation || explanation.length === 0) {
       return res.status(500).json({
