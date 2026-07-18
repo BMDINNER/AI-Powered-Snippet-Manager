@@ -93,23 +93,35 @@ export interface AIChatRequest {
 }
 
 export interface AIGenerateResponse {
-  title: string;
-  description: string;
-  code: string;
-  language: string;
-  tags: string[];
+  success: boolean;
+  data: {
+    title: string;
+    description: string;
+    code: string;
+    language: string;
+    tags: string[];
+  };
 }
 
 export interface AIOptimizeResponse {
-  optimizedCode: string;
+  success: boolean;
+  data: {
+    optimizedCode: string;
+  };
 }
 
 export interface AIExplainResponse {
-  explanation: string;
+  success: boolean;
+  data: {
+    explanation: string;
+  };
 }
 
 export interface AIChatResponse {
-  response: string;
+  success: boolean;
+  data: {
+    response: string;
+  };
 }
 
 export interface ApiResponse<T = any> {
