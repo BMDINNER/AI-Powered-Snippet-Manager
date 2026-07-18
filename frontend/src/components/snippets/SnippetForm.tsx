@@ -167,9 +167,10 @@ export const SnippetForm: React.FC<SnippetFormProps> = ({ snippet, onClose }) =>
       const optimized = await optimizeCode(formData.code, formData.language);
       
       if (optimized && optimized.length > 0) {
+        const markdownCode = `\`\`\`${formData.language}\n${optimized}\n\`\`\``;
         setFormData({
           ...formData,
-          code: optimized
+          code: markdownCode
         });
         toast.success('Code optimized successfully', { id: 'ai-optimize' });
       } else {
