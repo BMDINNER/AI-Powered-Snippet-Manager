@@ -14,8 +14,17 @@ export const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ content, cla
     return null;
   }
 
-  // Ensure the content is treated as raw markdown
-  const markdownContent = String(content);
+  let cleanContent = content.trim();
+  
+
+  const isMarkdown = cleanContent.includes('```') || 
+      cleanContent.includes('`') || 
+      cleanContent.includes('**') || 
+      cleanContent.includes('# ') ||
+      cleanContent.includes('* ') ||
+      cleanContent.includes('- ');
+
+  const markdownContent = isMarkdown ? cleanContent : `\`\`\`text\n${cleanContent}\n\`\`\``;
 
   return (
     <div className={`markdown-renderer ${className}`}>

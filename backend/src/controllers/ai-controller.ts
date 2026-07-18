@@ -104,7 +104,6 @@ export const improveSnippet = async (req: Request, res: Response) => {
     }
 
     const language = detectLanguage(code);
-
     const improvedCode = await groqService.optimizeCode(code, language);
     const cleanCode = stripCodeBlock(improvedCode);
 
@@ -115,12 +114,11 @@ export const improveSnippet = async (req: Request, res: Response) => {
       });
     }
 
-    const markdownCode = `\`\`\`${language}\n${cleanCode}\n\`\`\``;
-
+    // Return the code directly, not wrapped in markdown
     res.json({
       success: true,
       data: {
-        code: markdownCode
+        code: cleanCode
       }
     });
   } catch (error: any) {
