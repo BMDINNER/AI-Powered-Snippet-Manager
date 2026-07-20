@@ -139,10 +139,12 @@ export const improveSnippet = async (req: Request, res: Response) => {
       });
     }
 
+    const markdownCode = `\`\`\`${detectedLanguage}\n${finalCode}\n\`\`\``;
+
     res.json({
       success: true,
       data: {
-        optimizedCode: finalCode
+        optimizedCode: markdownCode
       }
     });
   } catch (error: any) {
@@ -182,7 +184,7 @@ export const explainCode = async (req: Request, res: Response) => {
       });
     }
 
-    const explanation = await groqService.explainCode(cleanCode, 'code');
+    const explanation = await groqService.explainCode(cleanCode);
 
     if (!explanation || explanation.length === 0) {
       return res.status(500).json({

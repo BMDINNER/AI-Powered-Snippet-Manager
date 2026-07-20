@@ -57,17 +57,17 @@ export class GroqService {
     }
   }
 
-  async explainCode(code: string, language: string): Promise<string> {
-    const prompt = `Explain this ${language} code in detail. Describe what it does, how it works, and any important details:\n\n${code}`;
+  async explainCode(code: string): Promise<string> {
+    const prompt = `Explain this code in detail. Describe what it does, how it works, and any important details. Write in clear, simple English. Use proper formatting with paragraphs and bullet points where appropriate:\n\n${code}`;
 
     try {
       const response = await this.groq.chat.completions.create({
         messages: [
-          { role: 'system', content: 'You are a code explainer. Provide clear, beginner-friendly explanations of code. Use plain English and avoid markdown formatting.' },
+          { role: 'system', content: 'You are a code explainer. Provide clear, beginner-friendly explanations of code. Use plain English, proper paragraphs, and bullet points for lists. Do NOT use markdown code blocks or backticks in your explanation unless showing a short code example. Keep the explanation focused on WHAT the code does and HOW it works.' },
           { role: 'user', content: prompt }
         ],
         model: this.model,
-        temperature: 0.5,
+        temperature: 0.4,
         max_tokens: 2048,
       });
 
@@ -79,25 +79,16 @@ export class GroqService {
   }
 
   async optimizeCode(code: string, language: string): Promise<string> {
-    const prompt = `You are a code optimization expert. Optimize the following ${language} code for better performance, readability, and best practices.
-
-IMPORTANT:
-1. Keep the code functionality exactly the same
-2. Do NOT change the purpose of the code
-3. Do NOT add markdown formatting
-4. Do NOT add explanations
-5. Return ONLY the optimized raw code
-
-${code}`;
+    const prompt = `Optimize the following ${language} code for better performance, readability, and best practices. Keep the functionality exactly the same. Do NOT change the purpose of the code. Do NOT add recursive or repeated optimizations. Return ONLY the optimized raw code without any explanations or markdown formatting:\n\n${code}`;
 
     try {
       const response = await this.groq.chat.completions.create({
         messages: [
-          { role: 'system', content: `You are a code optimization expert. Return ONLY the raw optimized ${language} code without any markdown formatting, code blocks, or explanations. Keep the code's original purpose intact.` },
+          { role: 'system', content: `You are a code optimization expert. Optimize the code once and return ONLY the raw optimized ${language} code. Do NOT add recursive optimization or repeat the same code multiple times. Do NOT add markdown formatting, code blocks, or explanations.` },
           { role: 'user', content: prompt }
         ],
         model: this.model,
-        temperature: 0.3,
+        temperature: 0.2,
         max_tokens: 4096,
       });
 
