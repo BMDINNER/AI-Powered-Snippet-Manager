@@ -7,17 +7,44 @@ import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
 interface MarkdownRendererProps {
   content: string;
   className?: string;
+  isCode?: boolean;
 }
 
-export const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ content, className = '' }) => {
+export const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ content, className = '', isCode = false }) => {
   if (!content) {
     return null;
   }
 
-  let cleanContent = content.trim();
-  
-  const isMarkdown = cleanContent.includes('```') || 
-      cleanContent.includes('`') || 
+  const cleanContent = content.trim();
+
+  // If this is code content or looks like a code block, render as code
+  if (isCode || cleanContent.includes('```')) {
+    const codeMatch = cleanContent.match(/```(?:\w+)?\n([\s\S]*?)```/);
+    let codeString = codeMatch ? codeMatch[1].trim() : cleanContent;
+    
+    const langMatch = cleanContent.match(/```(\w+)/);
+    const language = langMatch ? langMatch[1] : 'text';
+    
+    return (
+      <SyntaxHighlighter
+        language={language}
+        style={vscDarkPlus}
+        customStyle={{
+          backgroundColor: '#282c34',
+          borderRadius: '8px',
+          padding: '16px',
+          fontSize: '14px',
+          margin: '8px 0',
+        }}
+        showLineNumbers={false}
+      >
+        {codeString}
+      </SyntaxHighlighter>
+    );
+  }
+
+  // Checking if this is markdown content 
+  const isMarkdown = cleanContent.includes('`') || 
       cleanContent.includes('**') || 
       cleanContent.includes('# ') ||
       cleanContent.includes('* ') ||

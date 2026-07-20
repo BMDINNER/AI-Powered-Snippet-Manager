@@ -16,13 +16,11 @@ export const useAI = () => {
       
       console.log('Full result from aiService:', result);
       
-      // Check if result exists and has the expected structure
       if (!result) {
         console.error('Result is null or undefined');
         throw new Error('No response from AI service');
       }
 
-      // The result might be wrapped in a data property
       const codeData = result.data || result;
       
       console.log('Extracted code data:', codeData);
@@ -67,10 +65,17 @@ export const useAI = () => {
     setError(null);
     
     try {
+      // Extracting raw code from markdown before sending to AI
+      let rawCode = code;
+      const codeBlockMatch = code.match(/```(?:\w+)?\n([\s\S]*?)```/);
+      if (codeBlockMatch && codeBlockMatch[1]) {
+        rawCode = codeBlockMatch[1].trim();
+      }
+      
       const result = await aiService.optimizeCode({ 
-        code, 
+        code: rawCode, 
         language,
-        instructions: 'Improve the code quality and readability'
+        instructions: 'Improve the code quality and readability without changing its purpose'
       });
       
       console.log('Optimize result:', result);
@@ -81,8 +86,10 @@ export const useAI = () => {
         throw new Error('AI returned empty optimized code');
       }
       
+      const optimizedRaw = optimizedData.optimizedCode;
+      
       toast.success('Code optimized successfully');
-      return optimizedData.optimizedCode;
+      return optimizedRaw;
     } catch (err: any) {
       console.error('Optimize error:', err);
       const message = err.response?.data?.message || err.message || 'Failed to optimize code';

@@ -234,13 +234,13 @@ export const SnippetDetail: React.FC = () => {
         
         {snippet.code ? (
           <div className="bg-[#282c34] rounded-lg p-4 overflow-x-auto">
-            <MarkdownRenderer content={snippet.code} />
+            <MarkdownRenderer content={snippet.code} isCode={true} />
           </div>
         ) : (
           <div className="p-4 rounded-lg text-center border border-gray-200">
             No code available
-  </div>
-)}
+          </div>
+        )}
       </Card>
 
       {showExplanation && explanation && (
