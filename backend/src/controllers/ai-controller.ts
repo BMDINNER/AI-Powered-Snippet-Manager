@@ -85,6 +85,14 @@ export const generateSnippet = async (req: Request, res: Response) => {
     });
   } catch (error: any) {
     console.error('Generate snippet error:', error);
+    
+    if (error.message?.includes('rate limit') || error.message?.includes('Rate limit')) {
+      return res.status(429).json({
+        success: false,
+        message: 'AI rate limit reached. Please wait a few minutes and try again.'
+      });
+    }
+    
     res.status(500).json({
       success: false,
       message: error.message || 'Failed to generate snippet'
@@ -111,10 +119,20 @@ export const improveSnippet = async (req: Request, res: Response) => {
     }
 
     const detectedLanguage = language || detectLanguage(code);
-    const improvedCode = await groqService.optimizeCode(code, detectedLanguage);
-    const cleanCode = stripCodeBlock(improvedCode);
-
+    
+    const cleanCode = stripCodeBlock(code);
+    
     if (!cleanCode || cleanCode.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'No valid code to optimize'
+      });
+    }
+
+    const improvedCode = await groqService.optimizeCode(cleanCode, detectedLanguage);
+    const finalCode = stripCodeBlock(improvedCode);
+
+    if (!finalCode || finalCode.length === 0) {
       return res.status(500).json({
         success: false,
         message: 'AI returned empty optimized code. Please try again.'
@@ -124,11 +142,19 @@ export const improveSnippet = async (req: Request, res: Response) => {
     res.json({
       success: true,
       data: {
-        optimizedCode: cleanCode
+        optimizedCode: finalCode
       }
     });
   } catch (error: any) {
     console.error('Improve snippet error:', error);
+    
+    if (error.message?.includes('rate limit') || error.message?.includes('Rate limit')) {
+      return res.status(429).json({
+        success: false,
+        message: 'AI rate limit reached. Please wait a few minutes and try again.'
+      });
+    }
+    
     res.status(500).json({
       success: false,
       message: error.message || 'Failed to improve snippet'
@@ -173,6 +199,14 @@ export const explainCode = async (req: Request, res: Response) => {
     });
   } catch (error: any) {
     console.error('Explain code error:', error);
+    
+    if (error.message?.includes('rate limit') || error.message?.includes('Rate limit')) {
+      return res.status(429).json({
+        success: false,
+        message: 'AI rate limit reached. Please wait a few minutes and try again.'
+      });
+    }
+    
     res.status(500).json({
       success: false,
       message: error.message || 'Failed to explain code'
@@ -201,6 +235,14 @@ export const chatWithAI = async (req: Request, res: Response) => {
     });
   } catch (error: any) {
     console.error('Chat error:', error);
+    
+    if (error.message?.includes('rate limit') || error.message?.includes('Rate limit')) {
+      return res.status(429).json({
+        success: false,
+        message: 'AI rate limit reached. Please wait a few minutes and try again.'
+      });
+    }
+    
     res.status(500).json({
       success: false,
       message: error.message || 'Failed to chat with AI'

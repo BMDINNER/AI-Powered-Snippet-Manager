@@ -19,7 +19,6 @@ export class GroqService {
     const fullPrompt = `Generate ${language} code for: ${prompt}. Return only the code without any explanations, markdown formatting, or code blocks. Just the raw code.`;
 
     try {
-      
       const response = await this.groq.chat.completions.create({
         messages: [
           { role: 'system', content: `You are a helpful code assistant. Generate clean, well-documented ${language} code. Return ONLY the raw code without any markdown formatting, code blocks, or explanations.` },
@@ -80,12 +79,21 @@ export class GroqService {
   }
 
   async optimizeCode(code: string, language: string): Promise<string> {
-    const prompt = `Optimize this ${language} code for better performance, readability, and best practices. Return only the optimized code without any explanations or markdown formatting:\n\n${code}`;
+    const prompt = `You are a code optimization expert. Optimize the following ${language} code for better performance, readability, and best practices.
+
+IMPORTANT:
+1. Keep the code functionality exactly the same
+2. Do NOT change the purpose of the code
+3. Do NOT add markdown formatting
+4. Do NOT add explanations
+5. Return ONLY the optimized raw code
+
+${code}`;
 
     try {
       const response = await this.groq.chat.completions.create({
         messages: [
-          { role: 'system', content: `You are a code optimization expert. Return ONLY the raw optimized code without any markdown formatting, code blocks, or explanations.` },
+          { role: 'system', content: `You are a code optimization expert. Return ONLY the raw optimized ${language} code without any markdown formatting, code blocks, or explanations. Keep the code's original purpose intact.` },
           { role: 'user', content: prompt }
         ],
         model: this.model,
@@ -93,7 +101,9 @@ export class GroqService {
         max_tokens: 4096,
       });
 
-      return response.choices[0]?.message?.content || '';
+      const generated = response.choices[0]?.message?.content || '';
+      
+      return generated;
     } catch (error: any) {
       console.error('Groq optimizeCode error:', error.message);
       throw new Error(`Failed to optimize code: ${error.message}`);
