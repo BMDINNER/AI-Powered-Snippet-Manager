@@ -156,31 +156,31 @@ export const SnippetForm: React.FC<SnippetFormProps> = ({ snippet, onClose }) =>
   };
 
   const handleOptimizeWithAI = async () => {
-    if (!formData.code) {
-      toast.error('Please enter code first');
-      return;
-    }
+  if (!formData.code) {
+    toast.error('Please enter code first');
+    return;
+  }
 
-    try {
-      toast.loading('Optimizing code...', { id: 'ai-optimize' });
-      
-      const optimized = await optimizeCode(formData.code, formData.language);
-      
-      if (optimized && optimized.length > 0) {
-        const markdownCode = `\`\`\`${formData.language}\n${optimized}\n\`\`\``;
-        setFormData({
-          ...formData,
-          code: markdownCode
-        });
-        toast.success('Code optimized successfully', { id: 'ai-optimize' });
-      } else {
-        toast.error('Optimization returned empty result', { id: 'ai-optimize' });
-      }
-    } catch (error: any) {
-      console.error('AI optimization failed:', error);
-      toast.error(error.message || 'AI optimization failed', { id: 'ai-optimize' });
+  try {
+    toast.loading('Optimizing code...', { id: 'ai-optimize' });
+    
+    const optimized = await optimizeCode(formData.code, formData.language);
+    
+    if (optimized && optimized.length > 0) {
+      const markdownCode = `\`\`\`${formData.language}\n${optimized}\n\`\`\``;
+      setFormData({
+        ...formData,
+        code: markdownCode
+      });
+      toast.success('Code optimized successfully', { id: 'ai-optimize' });
+    } else {
+      toast.error('Optimization returned empty result', { id: 'ai-optimize' });
     }
-  };
+  } catch (error: any) {
+    console.error('AI optimization failed:', error);
+    toast.error(error.message || 'AI optimization failed', { id: 'ai-optimize' });
+  }
+};
 
   const handleInsertCode = (code: string) => {
     setFormData({ ...formData, code });

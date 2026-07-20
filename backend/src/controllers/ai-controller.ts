@@ -139,12 +139,10 @@ export const improveSnippet = async (req: Request, res: Response) => {
       });
     }
 
-    const markdownCode = `\`\`\`${detectedLanguage}\n${finalCode}\n\`\`\``;
-
     res.json({
       success: true,
       data: {
-        optimizedCode: markdownCode
+        optimizedCode: finalCode
       }
     });
   } catch (error: any) {
