@@ -216,7 +216,7 @@ export const SnippetDetail: React.FC = () => {
           )}
         </div>
       </Card>
-
+  {/*Now code should be always rendered with isCode=true, and explanation isCode= false */}
       <Card>
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-lg font-semibold text-gray-900">Code</h2>
