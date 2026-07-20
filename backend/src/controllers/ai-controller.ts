@@ -138,7 +138,6 @@ export const improveSnippet = async (req: Request, res: Response) => {
         message: 'AI returned empty optimized code. Please try again.'
       });
     }
-
     res.json({
       success: true,
       data: {

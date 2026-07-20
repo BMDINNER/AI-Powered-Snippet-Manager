@@ -167,7 +167,13 @@ export const SnippetForm: React.FC<SnippetFormProps> = ({ snippet, onClose }) =>
     const optimized = await optimizeCode(formData.code, formData.language);
     
     if (optimized && optimized.length > 0) {
-      const markdownCode = `\`\`\`${formData.language}\n${optimized}\n\`\`\``;
+      let rawCode = optimized;
+      const codeBlockMatch = optimized.match(/```(?:\w+)?\n([\s\S]*?)```/);
+      if (codeBlockMatch && codeBlockMatch[1]) {
+        rawCode = codeBlockMatch[1].trim();
+      }
+      
+      const markdownCode = `\`\`\`${formData.language}\n${rawCode}\n\`\`\``;
       setFormData({
         ...formData,
         code: markdownCode

@@ -16,8 +16,32 @@ export const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ content, cla
   }
 
   const cleanContent = content.trim();
+  if (isCode) {
+    const codeMatch = cleanContent.match(/```(?:\w+)?\n([\s\S]*?)```/);
+    let codeString = codeMatch ? codeMatch[1].trim() : cleanContent;
+    
+    const langMatch = cleanContent.match(/```(\w+)/);
+    const language = langMatch ? langMatch[1] : 'javascript';
+    
+    return (
+      <SyntaxHighlighter
+        language={language}
+        style={vscDarkPlus}
+        customStyle={{
+          backgroundColor: '#282c34',
+          borderRadius: '8px',
+          padding: '16px',
+          fontSize: '14px',
+          margin: '8px 0',
+        }}
+        showLineNumbers={false}
+      >
+        {codeString}
+      </SyntaxHighlighter>
+    );
+  }
 
-  if (isCode || cleanContent.includes('```')) {
+  if (cleanContent.includes('```')) {
     const codeMatch = cleanContent.match(/```(?:\w+)?\n([\s\S]*?)```/);
     let codeString = codeMatch ? codeMatch[1].trim() : cleanContent;
     
@@ -42,8 +66,7 @@ export const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ content, cla
     );
   }
 
-  const isMarkdown = cleanContent.includes('`') || 
-      cleanContent.includes('**') || 
+  const isMarkdown = cleanContent.includes('**') || 
       cleanContent.includes('# ') ||
       cleanContent.includes('* ') ||
       cleanContent.includes('- ') ||
