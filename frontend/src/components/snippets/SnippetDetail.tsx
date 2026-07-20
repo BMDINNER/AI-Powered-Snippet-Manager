@@ -252,7 +252,7 @@ export const SnippetDetail: React.FC = () => {
             </Button>
           </div>
           <div className="prose prose-sm max-w-none text-gray-700 bg-gray-50 p-4 rounded-lg">
-            <MarkdownRenderer content={explanation} />
+            <MarkdownRenderer content={explanation} isCode={false} />
           </div>
         </Card>
       )}

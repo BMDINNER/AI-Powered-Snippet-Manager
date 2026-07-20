@@ -17,7 +17,6 @@ export const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ content, cla
 
   const cleanContent = content.trim();
 
-  // If this is code content or looks like a code block, render as code
   if (isCode || cleanContent.includes('```')) {
     const codeMatch = cleanContent.match(/```(?:\w+)?\n([\s\S]*?)```/);
     let codeString = codeMatch ? codeMatch[1].trim() : cleanContent;
@@ -43,12 +42,13 @@ export const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ content, cla
     );
   }
 
-  // Checking if this is markdown content 
   const isMarkdown = cleanContent.includes('`') || 
       cleanContent.includes('**') || 
       cleanContent.includes('# ') ||
       cleanContent.includes('* ') ||
-      cleanContent.includes('- ');
+      cleanContent.includes('- ') ||
+      cleanContent.includes('> ') ||
+      cleanContent.includes('|');
 
   const markdownContent = isMarkdown ? cleanContent : `\`\`\`text\n${cleanContent}\n\`\`\``;
 
