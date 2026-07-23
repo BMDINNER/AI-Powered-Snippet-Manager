@@ -79,7 +79,7 @@ export const explainCode = async (req: Request, res: Response) => {
       });
     }
 
-    const explanation = await groqService.explainCode(code, 'code');
+    const explanation = await groqService.explainCode(code);
 
     res.json({
       success: true,
