@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useAuth } from '@bmdinner/logreg';
-import { MarkdownRenderer } from '../ui/MarkdownRenderer';
+import { ChatMarkdownRenderer } from '../ui/ChatMarkdownRenderer';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { 
   faRobot, 
@@ -212,9 +212,7 @@ export const AIChatPage: React.FC = () => {
                       {message.content}
                     </p>
                   ) : (
-                    <div style={{ background: 'transparent' }}>
-                      <MarkdownRenderer content={message.content} isCode={false} />
-                    </div>
+                    <ChatMarkdownRenderer content={message.content} />
                   )}
                   
                   {message.role === 'assistant' && (
