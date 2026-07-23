@@ -26,7 +26,7 @@ export const AIChatPage: React.FC = () => {
     {
       id: '1',
       role: 'assistant',
-      content: 'Hello! I\'m your AI coding assistant. I can help you with code generation, explanations, and improvements. What would you like help with?'
+      content: 'Hello! I am your AI coding assistant. I can help you with code generation, explanations, and improvements. What would you like help with?'
     }
   ]);
   const [input, setInput] = useState('');
@@ -91,7 +91,7 @@ export const AIChatPage: React.FC = () => {
         const aiMessage: Message = {
           id: Date.now().toString(),
           role: 'assistant',
-          content: data.data.response || 'I didn\'t understand that. Could you please rephrase?'
+          content: data.data.response || 'I did not understand that. Could you please rephrase?'
         };
         setMessages(prev => [...prev, aiMessage]);
       } else {
@@ -212,7 +212,9 @@ export const AIChatPage: React.FC = () => {
                       {message.content}
                     </p>
                   ) : (
-                    <ChatMarkdownRenderer content={message.content} />
+                    <div style={{ fontSize: '16px', lineHeight: '1.6' }}>
+                      <ChatMarkdownRenderer content={message.content} />
+                    </div>
                   )}
                   
                   {message.role === 'assistant' && (
