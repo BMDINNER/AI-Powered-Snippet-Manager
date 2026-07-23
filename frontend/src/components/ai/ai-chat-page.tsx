@@ -177,68 +177,79 @@ export const AIChatPage: React.FC = () => {
           </div>
         ) : (
           <>
-            {messages.map(message => (
-              <div
-                key={message.id}
-                style={{
-                  display: 'flex',
-                  justifyContent: message.role === 'user' ? 'flex-end' : 'flex-start',
-                  width: '100%'
-                }}
-              >
+            {messages.map(message => {
+              const isInitialGreeting = message.id === '1';
+              const shouldRenderMarkdown = !isInitialGreeting && message.role === 'assistant';
+              
+              return (
                 <div
+                  key={message.id}
                   style={{
-                    maxWidth: message.role === 'user' ? '80%' : '100%',
-                    padding: '16px',
-                    borderRadius: '12px',
-                    backgroundColor: message.role === 'user' ? '#7c3aed' : '#ffffff',
-                    color: message.role === 'user' ? '#ffffff' : '#1f2937',
-                    border: message.role === 'assistant' ? '1px solid #e5e7eb' : 'none',
-                    width: message.role === 'assistant' ? '100%' : 'auto'
+                    display: 'flex',
+                    justifyContent: message.role === 'user' ? 'flex-end' : 'flex-start',
+                    width: '100%'
                   }}
                 >
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
-                    <FontAwesomeIcon
-                      icon={message.role === 'user' ? faUser : faRobot}
-                      style={{ color: message.role === 'user' ? '#c4b5fd' : '#7c3aed' }}
-                    />
-                    <span style={{ fontSize: '14px', fontWeight: '500' }}>
-                      {message.role === 'user' ? 'You' : 'AI Assistant'}
-                    </span>
-                  </div>
-                  
-                  {message.role === 'user' ? (
-                    <p style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word', margin: 0 }}>
-                      {message.content}
-                    </p>
-                  ) : (
-                    <div style={{ fontSize: '16px', lineHeight: '1.6' }}>
-                      <ChatMarkdownRenderer content={message.content} />
+                  <div
+                    style={{
+                      maxWidth: message.role === 'user' ? '80%' : '100%',
+                      padding: '16px',
+                      borderRadius: '12px',
+                      backgroundColor: message.role === 'user' ? '#7c3aed' : '#ffffff',
+                      color: message.role === 'user' ? '#ffffff' : '#1f2937',
+                      border: message.role === 'assistant' ? '1px solid #e5e7eb' : 'none',
+                      width: message.role === 'assistant' ? '100%' : 'auto'
+                    }}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
+                      <FontAwesomeIcon
+                        icon={message.role === 'user' ? faUser : faRobot}
+                        style={{ color: message.role === 'user' ? '#c4b5fd' : '#7c3aed' }}
+                      />
+                      <span style={{ fontSize: '14px', fontWeight: '500' }}>
+                        {message.role === 'user' ? 'You' : 'AI Assistant'}
+                      </span>
                     </div>
-                  )}
-                  
-                  {message.role === 'assistant' && (
-                    <button
-                      onClick={() => handleCopy(message.content)}
-                      style={{
-                        marginTop: '8px',
-                        fontSize: '14px',
-                        color: '#9ca3af',
-                        background: 'transparent',
-                        border: 'none',
-                        cursor: 'pointer',
-                        padding: '4px 0'
-                      }}
-                      onMouseEnter={(e) => e.currentTarget.style.color = '#4b5563'}
-                      onMouseLeave={(e) => e.currentTarget.style.color = '#9ca3af'}
-                    >
-                      <FontAwesomeIcon icon={faCopy} style={{ marginRight: '4px' }} />
-                      Copy
-                    </button>
-                  )}
+                    
+                    {message.role === 'user' ? (
+                      <p style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word', margin: 0 }}>
+                        {message.content}
+                      </p>
+                    ) : (
+                      <div style={{ fontSize: '16px', lineHeight: '1.6' }}>
+                        {shouldRenderMarkdown ? (
+                          <ChatMarkdownRenderer content={message.content} />
+                        ) : (
+                          <p style={{ margin: 0, color: '#1f2937' }}>
+                            {message.content}
+                          </p>
+                        )}
+                      </div>
+                    )}
+                    
+                    {message.role === 'assistant' && (
+                      <button
+                        onClick={() => handleCopy(message.content)}
+                        style={{
+                          marginTop: '8px',
+                          fontSize: '14px',
+                          color: '#9ca3af',
+                          background: 'transparent',
+                          border: 'none',
+                          cursor: 'pointer',
+                          padding: '4px 0'
+                        }}
+                        onMouseEnter={(e) => e.currentTarget.style.color = '#4b5563'}
+                        onMouseLeave={(e) => e.currentTarget.style.color = '#9ca3af'}
+                      >
+                        <FontAwesomeIcon icon={faCopy} style={{ marginRight: '4px' }} />
+                        Copy
+                      </button>
+                    )}
+                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
             {loading && (
               <div style={{ display: 'flex', justifyContent: 'flex-start', width: '100%' }}>
                 <div style={{ backgroundColor: '#ffffff', border: '1px solid #e5e7eb', borderRadius: '12px', padding: '16px' }}>
