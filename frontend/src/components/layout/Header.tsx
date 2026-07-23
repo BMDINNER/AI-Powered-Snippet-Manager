@@ -63,7 +63,7 @@ export const Header: React.FC = () => {
               <FontAwesomeIcon icon={faCode} className="h-5 w-5 text-white" />
             </div>
             <span className="text-lg font-semibold text-gray-900">
-              AI Snippets
+              Snippet Manager
             </span>
           </div>
 
