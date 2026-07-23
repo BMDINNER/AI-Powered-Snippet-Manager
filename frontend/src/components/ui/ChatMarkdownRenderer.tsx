@@ -2,7 +2,7 @@ import React from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
-import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
+import { vs } from 'react-syntax-highlighter/dist/esm/styles/prism';
 
 interface ChatMarkdownRendererProps {
   content: string;
@@ -48,13 +48,14 @@ export const ChatMarkdownRenderer: React.FC<ChatMarkdownRendererProps> = ({ cont
             return (
               <SyntaxHighlighter
                 language={language}
-                style={vscDarkPlus}
+                style={vs}
                 customStyle={{
-                  backgroundColor: 'transparent',
+                  backgroundColor: '#f3f4f6',
                   borderRadius: '8px',
                   padding: '12px',
-                  fontSize: '14px',
+                  fontSize: '15px',
                   margin: '4px 0',
+                  color: '#1f2937'
                 }}
                 showLineNumbers={false}
               >
@@ -81,16 +82,16 @@ export const ChatMarkdownRenderer: React.FC<ChatMarkdownRendererProps> = ({ cont
             return <h6 className="text-xs font-semibold text-gray-800 my-1">{children}</h6>;
           },
           p({ children }) {
-            return <p className="text-gray-700 my-2 leading-relaxed">{children}</p>;
+            return <p className="text-gray-700 my-2 leading-relaxed text-base">{children}</p>;
           },
           ul({ children }) {
-            return <ul className="list-disc pl-5 my-2 space-y-1">{children}</ul>;
+            return <ul className="list-disc pl-5 my-2 space-y-1 text-base">{children}</ul>;
           },
           ol({ children }) {
-            return <ol className="list-decimal pl-5 my-2 space-y-1">{children}</ol>;
+            return <ol className="list-decimal pl-5 my-2 space-y-1 text-base">{children}</ol>;
           },
           li({ children }) {
-            return <li className="text-gray-700">{children}</li>;
+            return <li className="text-gray-700 text-base">{children}</li>;
           },
           a({ href, children }) {
             return (
@@ -106,7 +107,7 @@ export const ChatMarkdownRenderer: React.FC<ChatMarkdownRendererProps> = ({ cont
           },
           blockquote({ children }) {
             return (
-              <blockquote className="border-l-4 border-purple-500 pl-4 my-2 text-gray-600 italic">
+              <blockquote className="border-l-4 border-purple-500 pl-4 my-2 text-gray-600 italic text-base">
                 {children}
               </blockquote>
             );
@@ -114,7 +115,7 @@ export const ChatMarkdownRenderer: React.FC<ChatMarkdownRendererProps> = ({ cont
           table({ children }) {
             return (
               <div className="overflow-x-auto my-4">
-                <table className="min-w-full border border-gray-300 rounded-lg">
+                <table className="min-w-full border border-gray-300 rounded-lg text-base">
                   {children}
                 </table>
               </div>
