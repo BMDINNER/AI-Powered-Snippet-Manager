@@ -201,14 +201,14 @@ export const AIChatPage: React.FC = () => {
                       icon={message.role === 'user' ? faUser : faRobot}
                       style={{ color: message.role === 'user' ? '#c4b5fd' : '#7c3aed' }}
                     />
-                    <span style={{ fontSize: '14px', fontWeight: '500' }}>
+                    <span style={{ fontSize: '14px', fontWeight: '500', color: message.role === 'user' ? '#ffffff' : '#1f2937' }}>
                       {message.role === 'user' ? 'You' : 'AI Assistant'}
                     </span>
                   </div>
                   
-                  <div style={{ fontSize: '16px', lineHeight: '1.6', color: '#1f2937' }}>
+                  <div style={{ fontSize: '16px', lineHeight: '1.6', color: message.role === 'user' ? '#ffffff' : '#1f2937' }}>
                     {message.role === 'user' ? (
-                      <p style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word', margin: 0 }}>
+                      <p style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word', margin: 0, color: '#ffffff' }}>
                         {message.content}
                       </p>
                     ) : (
