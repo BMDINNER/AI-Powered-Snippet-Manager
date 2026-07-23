@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useAuth } from '@bmdinner/logreg';
+import { ChatMarkdownRenderer } from '../ui/ChatMarkdownRenderer';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { 
   faRobot, 
@@ -112,6 +113,41 @@ export const AIChatPage: React.FC = () => {
     }
   };
 
+  // Checking if a message contains markdown syntax
+  const containsMarkdown = (content: string): boolean => {
+    return content.includes('**') || 
+      content.includes('# ') || 
+      content.includes('* ') || 
+      content.includes('- ') || 
+      content.includes('> ') || 
+      content.includes('|') ||
+      content.includes('```');
+  };
+
+  // Check if this is the initial greeting message (id: '1')
+  const isInitialGreeting = (message: Message): boolean => {
+    return message.id === '1' && message.role === 'assistant';
+  };
+
+  const renderMessageContent = (message: Message) => {
+    // Skipping markdown for initial greeting messages
+    if (isInitialGreeting(message)) {
+      return <p style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word', margin: 0, color: '#1f2937' }}>
+        {message.content}
+      </p>;
+    }
+    
+    // Use markdown renderer for all other assistant messages
+    if (message.role === 'assistant') {
+      return <ChatMarkdownRenderer content={message.content} />;
+    }
+    
+    // User messages will be kept as plain text
+    return <p style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word', margin: 0, color: '#ffffff' }}>
+      {message.content}
+    </p>;
+  };
+
   return (
     <div style={{
       display: 'flex',
@@ -207,18 +243,10 @@ export const AIChatPage: React.FC = () => {
                   </div>
                   
                   <div style={{ fontSize: '16px', lineHeight: '1.6', color: message.role === 'user' ? '#ffffff' : '#1f2937' }}>
-                    {message.role === 'user' ? (
-                      <p style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word', margin: 0, color: '#ffffff' }}>
-                        {message.content}
-                      </p>
-                    ) : (
-                      <p style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word', margin: 0 }}>
-                        {message.content}
-                      </p>
-                    )}
+                    {renderMessageContent(message)}
                   </div>
                   
-                  {message.role === 'assistant' && (
+                  {message.role === 'assistant' && !isInitialGreeting(message) && (
                     <button
                       onClick={() => handleCopy(message.content)}
                       style={{
