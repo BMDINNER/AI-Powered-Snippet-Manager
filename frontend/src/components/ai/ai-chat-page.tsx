@@ -212,7 +212,9 @@ export const AIChatPage: React.FC = () => {
                       {message.content}
                     </p>
                   ) : (
-                    <MarkdownRenderer content={message.content} />
+                    <div style={{ background: 'transparent' }}>
+                      <MarkdownRenderer content={message.content} isCode={false} />
+                    </div>
                   )}
                   
                   {message.role === 'assistant' && (
