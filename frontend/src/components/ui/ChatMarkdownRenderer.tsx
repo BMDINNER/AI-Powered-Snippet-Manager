@@ -50,11 +50,11 @@ export const ChatMarkdownRenderer: React.FC<ChatMarkdownRendererProps> = ({ cont
                 language={language}
                 style={vscDarkPlus}
                 customStyle={{
-                  backgroundColor: '#282c34',
+                  backgroundColor: 'transparent',
                   borderRadius: '8px',
-                  padding: '16px',
+                  padding: '12px',
                   fontSize: '14px',
-                  margin: '8px 0',
+                  margin: '4px 0',
                 }}
                 showLineNumbers={false}
               >
