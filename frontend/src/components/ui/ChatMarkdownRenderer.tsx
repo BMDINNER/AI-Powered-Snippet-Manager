@@ -22,9 +22,18 @@ export const ChatMarkdownRenderer: React.FC<ChatMarkdownRendererProps> = ({ cont
       cleanContent.includes('- ') ||
       cleanContent.includes('> ') ||
       cleanContent.includes('|') ||
-      cleanContent.includes('```');
+      cleanContent.includes('```') ||
+      cleanContent.includes('`');
 
-  const markdownContent = isMarkdown ? cleanContent : `\`\`\`text\n${cleanContent}\n\`\`\``;
+  if (!isMarkdown) {
+    return (
+      <div className={`chat-markdown-renderer ${className}`}>
+        <p className="text-gray-700 my-2 leading-relaxed text-base whitespace-pre-wrap">
+          {cleanContent}
+        </p>
+      </div>
+    );
+  }
 
   return (
     <div className={`chat-markdown-renderer ${className}`}>
@@ -154,7 +163,7 @@ export const ChatMarkdownRenderer: React.FC<ChatMarkdownRendererProps> = ({ cont
           },
         }}
       >
-        {markdownContent}
+        {cleanContent}
       </ReactMarkdown>
     </div>
   );
