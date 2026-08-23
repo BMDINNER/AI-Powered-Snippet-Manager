@@ -12,7 +12,7 @@ export class GroqService {
 
   constructor() {
     this.groq = new Groq({ apiKey: config.groqApiKey });
-    this.model = config.groqModel || 'groq/compound';
+    this.model = config.groqModel || 'openai/gpt-oss-120b';
   }
 
   async generateCode(prompt: string, language: string): Promise<string> {

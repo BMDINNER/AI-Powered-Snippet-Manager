@@ -24,6 +24,6 @@ export const config = {
   projectId: process.env.PROJECT_ID || '',
   apiKey: process.env.API_KEY || '',
   groqApiKey: process.env.GROQ_API_KEY || '',
-  groqModel: process.env.GROQ_MODEL || 'groq/compound',
+  groqModel: process.env.GROQ_MODEL || 'openai/gpt-oss-120b',
   corsOrigin: process.env.CORS_ORIGIN || 'http://localhost:3000',
 };
