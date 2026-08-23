@@ -131,7 +131,7 @@ export const checkHealth = async (req: Request, res: Response) => {
       success: true,
       data: {
         healthy: health.available,
-        model: process.env.GROQ_MODEL || 'llama-3.3-70b-versatile'
+        model: process.env.GROQ_MODEL || 'groq/compound'
       }
     });
   } catch (error: any) {

@@ -12,7 +12,7 @@ export class GroqService {
 
   constructor() {
     this.groq = new Groq({ apiKey: config.groqApiKey });
-    this.model = config.groqModel || 'llama-3.3-70b-versatile';
+    this.model = config.groqModel || 'groq/compound';
   }
 
   async generateCode(prompt: string, language: string): Promise<string> {
