@@ -24,6 +24,7 @@ interface FormData {
   code: string;
   language: string;
   tags: string;
+  aiGenerated: boolean;
 }
 
 const languageOptions = [
@@ -52,7 +53,8 @@ export const SnippetForm: React.FC<SnippetFormProps> = ({ snippet, onClose }) =>
     description: '',
     code: '',
     language: 'javascript',
-    tags: ''
+    tags: '',
+    aiGenerated: false
   });
 
   useEffect(() => {
@@ -83,7 +85,8 @@ export const SnippetForm: React.FC<SnippetFormProps> = ({ snippet, onClose }) =>
       description: snippetData.description || '',
       code: snippetData.code || '',
       language: snippetData.language || 'javascript',
-      tags: snippetData.tags?.join(', ') || ''
+      tags: snippetData.tags?.join(', ') || '',
+      aiGenerated: snippetData.aiGenerated || false
     });
   };
 
@@ -97,7 +100,8 @@ export const SnippetForm: React.FC<SnippetFormProps> = ({ snippet, onClose }) =>
         description: formData.description || undefined,
         code: formData.code,
         language: formData.language,
-        tags: formData.tags.split(',').map((t: string) => t.trim()).filter(Boolean)
+        tags: formData.tags.split(',').map((t: string) => t.trim()).filter(Boolean),
+        aiGenerated: formData.aiGenerated || false
       };
 
       if (id) {
@@ -145,7 +149,8 @@ export const SnippetForm: React.FC<SnippetFormProps> = ({ snippet, onClose }) =>
         ...formData,
         title: generated.title || formData.title,
         code: generated.code,
-        tags: Array.isArray(generated.tags) ? generated.tags.join(', ') : ''
+        tags: Array.isArray(generated.tags) ? generated.tags.join(', ') : '',
+        aiGenerated: true
       });
       
       toast.success('Snippet generated successfully', { id: 'ai-generate' });
@@ -156,40 +161,45 @@ export const SnippetForm: React.FC<SnippetFormProps> = ({ snippet, onClose }) =>
   };
 
   const handleOptimizeWithAI = async () => {
-  if (!formData.code) {
-    toast.error('Please enter code first');
-    return;
-  }
-
-  try {
-    toast.loading('Optimizing code...', { id: 'ai-optimize' });
-    
-    const optimized = await optimizeCode(formData.code, formData.language);
-    
-    if (optimized && optimized.length > 0) {
-      let rawCode = optimized;
-      const codeBlockMatch = optimized.match(/```(?:\w+)?\n([\s\S]*?)```/);
-      if (codeBlockMatch && codeBlockMatch[1]) {
-        rawCode = codeBlockMatch[1].trim();
-      }
-      
-      const markdownCode = `\`\`\`${formData.language}\n${rawCode}\n\`\`\``;
-      setFormData({
-        ...formData,
-        code: markdownCode
-      });
-      toast.success('Code optimized successfully', { id: 'ai-optimize' });
-    } else {
-      toast.error('Optimization returned empty result', { id: 'ai-optimize' });
+    if (!formData.code) {
+      toast.error('Please enter code first');
+      return;
     }
-  } catch (error: any) {
-    console.error('AI optimization failed:', error);
-    toast.error(error.message || 'AI optimization failed', { id: 'ai-optimize' });
-  }
-};
+
+    try {
+      toast.loading('Optimizing code...', { id: 'ai-optimize' });
+      
+      const optimized = await optimizeCode(formData.code, formData.language);
+      
+      if (optimized && optimized.length > 0) {
+        let rawCode = optimized;
+        const codeBlockMatch = optimized.match(/```(?:\w+)?\n([\s\S]*?)```/);
+        if (codeBlockMatch && codeBlockMatch[1]) {
+          rawCode = codeBlockMatch[1].trim();
+        }
+        
+        const markdownCode = `\`\`\`${formData.language}\n${rawCode}\n\`\`\``;
+        setFormData({
+          ...formData,
+          code: markdownCode,
+          aiGenerated: formData.aiGenerated
+        });
+        toast.success('Code optimized successfully', { id: 'ai-optimize' });
+      } else {
+        toast.error('Optimization returned empty result', { id: 'ai-optimize' });
+      }
+    } catch (error: any) {
+      console.error('AI optimization failed:', error);
+      toast.error(error.message || 'AI optimization failed', { id: 'ai-optimize' });
+    }
+  };
 
   const handleInsertCode = (code: string) => {
-    setFormData({ ...formData, code });
+    setFormData({ 
+      ...formData, 
+      code,
+      aiGenerated: true
+    });
     setShowAIChat(false);
     toast.success('Code inserted from AI chat');
   };
