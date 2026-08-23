@@ -15,7 +15,6 @@ import {
   faArrowLeft,
   faCode,
   faChartLine,
-  faRocket,
   faSave,
   faTimes,
   faLock
@@ -39,8 +38,7 @@ export const ProfilePage: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [stats, setStats] = useState({
     total: 0,
-    languages: 0,
-    aiGenerated: 0
+    languages: 0
   });
 
   useEffect(() => {
@@ -55,12 +53,10 @@ export const ProfilePage: React.FC = () => {
   useEffect(() => {
     if (snippets.length > 0) {
       const languages = new Set(snippets.map(s => s.language));
-      const aiGen = snippets.filter(s => s.aiGenerated).length;
 
       setStats({
         total: snippets.length,
-        languages: languages.size,
-        aiGenerated: aiGen
+        languages: languages.size
       });
     }
   }, [snippets]);
@@ -218,7 +214,7 @@ export const ProfilePage: React.FC = () => {
       </div>
 
       <Container className="py-12">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12">
           <Card className="bg-white shadow-sm p-6 hover:shadow-md transition-shadow border-l-4 border-l-black">
             <div className="flex items-center justify-between">
               <div>
@@ -239,18 +235,6 @@ export const ProfilePage: React.FC = () => {
               </div>
               <div className="w-12 h-12 bg-gray-100 rounded-xl flex items-center justify-center">
                 <FontAwesomeIcon icon={faChartLine} className="h-6 w-6 text-gray-700" />
-              </div>
-            </div>
-          </Card>
-
-          <Card className="bg-white shadow-sm p-6 hover:shadow-md transition-shadow border-l-4 border-l-black">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-500 mb-1">AI Generated</p>
-                <p className="text-3xl font-bold text-gray-900">{stats.aiGenerated}</p>
-              </div>
-              <div className="w-12 h-12 bg-gray-100 rounded-xl flex items-center justify-center">
-                <FontAwesomeIcon icon={faRocket} className="h-6 w-6 text-gray-700" />
               </div>
             </div>
           </Card>
