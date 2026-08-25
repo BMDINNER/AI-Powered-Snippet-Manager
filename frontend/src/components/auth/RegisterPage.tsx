@@ -106,7 +106,7 @@ export const RegisterPage: React.FC = () => {
                 onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                 icon={faLock}
                 required
-                placeholder="••••••••"
+                placeholder="&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;"
                 minLength={6}
               />
             </div>

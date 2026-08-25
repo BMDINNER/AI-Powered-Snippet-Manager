@@ -355,7 +355,7 @@ export const ProfilePage: React.FC = () => {
                 </div>
               ) : (
                 <div className="flex-1 flex items-center justify-between">
-                  <span className="text-gray-500">••••••••</span>
+                  <span className="text-gray-500">&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;</span>
                   <Button
                     variant="secondary"
                     size="sm"
