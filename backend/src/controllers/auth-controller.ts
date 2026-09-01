@@ -8,6 +8,29 @@ const getAuthHeaders = () => ({
   'Content-Type': 'application/json'
 });
 
+const waitForAuthService = async (retries = 20, delay = 5000): Promise<boolean> => {
+  for (let i = 0; i < retries; i++) {
+    try {
+      console.log(`Checking auth-service availability (${i + 1}/${retries})...`);
+      const response = await axios.get(`${config.authServiceUrl}/health`, {
+        timeout: 5000
+      });
+      if (response.status === 200) {
+        console.log('Auth-service is ready');
+        return true;
+      }
+    } catch (error) {
+      console.log(`Auth-service not ready yet (attempt ${i + 1})`);
+      if (i === retries - 1) {
+        console.warn('Auth-service not responding, proceeding anyway...');
+        return false;
+      }
+      await new Promise(resolve => setTimeout(resolve, delay));
+    }
+  }
+  return false;
+};
+
 export const login = async (req: Request, res: Response) => {
   try {
     const { email, password } = req.body;
@@ -25,6 +48,8 @@ export const login = async (req: Request, res: Response) => {
         message: 'Server configuration error'
       });
     }
+
+    await waitForAuthService();
     
     const response = await axios.post(
       `${config.authServiceUrl}/auth/project/login`,
@@ -48,6 +73,13 @@ export const login = async (req: Request, res: Response) => {
         return res.status(401).json({
           success: false,
           message: 'Invalid email or password'
+        });
+      }
+      
+      if (status === 429) {
+        return res.status(429).json({
+          success: false,
+          message: 'Too many login attempts. Please wait a moment and try again.'
         });
       }
       
@@ -83,6 +115,8 @@ export const register = async (req: Request, res: Response) => {
         message: 'Server configuration error'
       });
     }
+
+    await waitForAuthService();
     
     const response = await axios.post(
       `${config.authServiceUrl}/auth/project/register`,
@@ -107,6 +141,13 @@ export const register = async (req: Request, res: Response) => {
         return res.status(400).json({
           success: false,
           message: 'Email already registered'
+        });
+      }
+      
+      if (status === 429) {
+        return res.status(429).json({
+          success: false,
+          message: 'Too many registration attempts. Please wait a moment and try again.'
         });
       }
       

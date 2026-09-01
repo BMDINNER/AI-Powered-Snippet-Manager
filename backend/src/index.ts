@@ -46,7 +46,7 @@ app.get('/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
-const waitForDatabase = async (retries = 10, delay = 3000) => {
+const waitForDatabase = async (retries = 20, delay = 5000) => {
   for (let i = 0; i < retries; i++) {
     try {
       console.log(`Attempting database connection (${i + 1}/${retries})...`);
