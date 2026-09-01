@@ -8,7 +8,7 @@ const getAuthHeaders = () => ({
   'Content-Type': 'application/json'
 });
 
-const waitForAuthService = async (retries = 20, delay = 5000): Promise<boolean> => {
+const waitForAuthService = async (retries = 3, delay = 2000): Promise<boolean> => {
   for (let i = 0; i < retries; i++) {
     try {
       console.log(`Checking auth-service availability (${i + 1}/${retries})...`);

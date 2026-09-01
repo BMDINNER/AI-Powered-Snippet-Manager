@@ -46,7 +46,7 @@ app.get('/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
-const waitForDatabase = async (retries = 20, delay = 5000) => {
+const waitForDatabase = async (retries = 10, delay = 2000) => {
   for (let i = 0; i < retries; i++) {
     try {
       console.log(`Attempting database connection (${i + 1}/${retries})...`);
@@ -62,7 +62,8 @@ const waitForDatabase = async (retries = 20, delay = 5000) => {
   return false;
 };
 
-const waitForAuthService = async (retries = 20, delay = 5000) => {
+const waitForAuthService = async (retries = 10, delay = 3000) => {
+  let currentDelay = delay;
   for (let i = 0; i < retries; i++) {
     try {
       console.log(`Attempting to reach Auth Service (${i + 1}/${retries})...`);
@@ -78,11 +79,11 @@ const waitForAuthService = async (retries = 20, delay = 5000) => {
       console.warn('Auth Service not responding, but continuing...');
       return false;
     }
-    await new Promise(resolve => setTimeout(resolve, delay));
+    await new Promise(resolve => setTimeout(resolve, currentDelay));
+    currentDelay *= 2;
   }
   return false;
 };
-
 
 const startServer = async () => {
   try {
