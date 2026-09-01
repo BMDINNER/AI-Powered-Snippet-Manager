@@ -8,11 +8,10 @@ import authRoutes from './routes/auth-routes.js';
 import snippetRoutes from './routes/snippet-routes.js';
 import aiRoutes from './routes/ai-routes.js';
 import { authenticate } from './middleware/auth.js';
+import { prisma } from './config/database.js';
 
 const app = express();
-
 app.set('trust proxy', 1);
-
 
 const port = config.port;
 
@@ -47,7 +46,56 @@ app.get('/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
+const waitForDatabase = async (retries = 10, delay = 3000) => {
+  for (let i = 0; i < retries; i++) {
+    try {
+      console.log(`Attempting database connection (${i + 1}/${retries})...`);
+      await prisma.$connect();
+      console.log('Database connected successfully!');
+      return true;
+    } catch (error) {
+      console.log(`Database not ready yet (attempt ${i + 1})`);
+      if (i === retries - 1) throw error;
+      await new Promise(resolve => setTimeout(resolve, delay));
+    }
+  }
+  return false;
+};
 
-app.listen(port, () => {
-  console.log(`Snippet manager backend running on port ${port}`);
-});
+const waitForAuthService = async (retries = 10, delay = 3000) => {
+  for (let i = 0; i < retries; i++) {
+    try {
+      console.log(`Attempting to reach Auth Service (${i + 1}/${retries})...`);
+      const response = await fetch(`${config.authServiceUrl}/health`);
+      if (response.ok) {
+        console.log('Auth Service is ready!');
+        return true;
+      }
+    } catch (error) {
+      console.log(`Auth Service not ready yet (attempt ${i + 1})`);
+    }
+    if (i === retries - 1) {
+      console.warn('Auth Service not responding, but continuing...');
+      return false;
+    }
+    await new Promise(resolve => setTimeout(resolve, delay));
+  }
+  return false;
+};
+
+
+const startServer = async () => {
+  try {
+    await waitForDatabase();
+    await waitForAuthService();
+
+    app.listen(port, () => {
+      console.log(`Snippet manager backend running on port ${port}`);
+    });
+  } catch (error) {
+    console.error('Failed to start server:', error);
+    process.exit(1);
+  }
+};
+
+startServer();
