@@ -10,6 +10,10 @@ import aiRoutes from './routes/ai-routes.js';
 import { authenticate } from './middleware/auth.js';
 
 const app = express();
+
+app.set('trust proxy', 1);
+
+
 const port = config.port;
 
 const allowedOrigins = [
