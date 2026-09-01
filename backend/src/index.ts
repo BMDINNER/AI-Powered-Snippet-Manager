@@ -62,7 +62,7 @@ const waitForDatabase = async (retries = 20, delay = 5000) => {
   return false;
 };
 
-const waitForAuthService = async (retries = 10, delay = 3000) => {
+const waitForAuthService = async (retries = 20, delay = 5000) => {
   for (let i = 0; i < retries; i++) {
     try {
       console.log(`Attempting to reach Auth Service (${i + 1}/${retries})...`);
