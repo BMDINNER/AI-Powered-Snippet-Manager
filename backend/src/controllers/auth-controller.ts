@@ -8,29 +8,6 @@ const getAuthHeaders = () => ({
   'Content-Type': 'application/json'
 });
 
-const wakeUpAuthService = async (retries = 5, delay = 2000): Promise<boolean> => {
-  for (let i = 0; i < retries; i++) {
-    try {
-      console.log(`Waking up auth-service (attempt ${i + 1}/${retries})...`);
-      const response = await axios.get(`${config.authServiceUrl}/health`, {
-        timeout: 5000
-      });
-      if (response.status === 200) {
-        console.log('Auth-service is awake and ready');
-        return true;
-      }
-    } catch (error) {
-      console.log(`Auth-service not ready yet (attempt ${i + 1})`);
-      if (i === retries - 1) {
-        console.warn('Auth-service not responding, proceeding anyway...');
-        return false;
-      }
-      await new Promise(resolve => setTimeout(resolve, delay));
-    }
-  }
-  return false;
-};
-
 export const login = async (req: Request, res: Response) => {
   try {
     const { email, password } = req.body;
@@ -48,8 +25,6 @@ export const login = async (req: Request, res: Response) => {
         message: 'Server configuration error'
       });
     }
-
-    await wakeUpAuthService();
     
     const response = await axios.post(
       `${config.authServiceUrl}/auth/project/login`,
@@ -115,8 +90,6 @@ export const register = async (req: Request, res: Response) => {
         message: 'Server configuration error'
       });
     }
-
-    await wakeUpAuthService();
     
     const response = await axios.post(
       `${config.authServiceUrl}/auth/project/register`,
