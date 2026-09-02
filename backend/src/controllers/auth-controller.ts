@@ -8,15 +8,15 @@ const getAuthHeaders = () => ({
   'Content-Type': 'application/json'
 });
 
-const waitForAuthService = async (retries = 3, delay = 2000): Promise<boolean> => {
+const wakeUpAuthService = async (retries = 5, delay = 2000): Promise<boolean> => {
   for (let i = 0; i < retries; i++) {
     try {
-      console.log(`Checking auth-service availability (${i + 1}/${retries})...`);
+      console.log(`Waking up auth-service (attempt ${i + 1}/${retries})...`);
       const response = await axios.get(`${config.authServiceUrl}/health`, {
         timeout: 5000
       });
       if (response.status === 200) {
-        console.log('Auth-service is ready');
+        console.log('Auth-service is awake and ready');
         return true;
       }
     } catch (error) {
@@ -49,7 +49,7 @@ export const login = async (req: Request, res: Response) => {
       });
     }
 
-    await waitForAuthService();
+    await wakeUpAuthService();
     
     const response = await axios.post(
       `${config.authServiceUrl}/auth/project/login`,
@@ -116,7 +116,7 @@ export const register = async (req: Request, res: Response) => {
       });
     }
 
-    await waitForAuthService();
+    await wakeUpAuthService();
     
     const response = await axios.post(
       `${config.authServiceUrl}/auth/project/register`,
