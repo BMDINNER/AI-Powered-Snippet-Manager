@@ -62,7 +62,7 @@ const waitForDatabase = async (retries = 10, delay = 2000) => {
   return false;
 };
 
-const waitForAuthService = async (retries = 10, delay = 3000) => {
+const waitForAuthService = async (retries = 5, delay = 1500) => {
   let currentDelay = delay;
   for (let i = 0; i < retries; i++) {
     try {
