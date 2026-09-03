@@ -46,53 +46,51 @@ app.get('/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
-const waitForDatabase = async (retries = 10, delay = 2000) => {
+const waitForDatabase = async (retries = 5, delay = 2000) => {
   for (let i = 0; i < retries; i++) {
     try {
-      console.log(`Attempting database connection (${i + 1}/${retries})...`);
+      console.log(`Database connection attempt ${i + 1}/${retries}...`);
       await prisma.$connect();
-      console.log('Database connected successfully!');
+      console.log('Database connected');
       return true;
     } catch (error) {
-      console.log(`Database not ready yet (attempt ${i + 1})`);
-      if (i === retries - 1) throw error;
+      console.log(`Database not ready (attempt ${i + 1})`);
+      if (i === retries - 1) {
+        console.error('Database connection failed after all retries');
+        return false;
+      }
       await new Promise(resolve => setTimeout(resolve, delay));
     }
   }
   return false;
 };
 
-const waitForAuthService = async (retries = 5, delay = 1500) => {
-  let currentDelay = delay;
-  for (let i = 0; i < retries; i++) {
-    try {
-      console.log(`Attempting to reach Auth Service (${i + 1}/${retries})...`);
-      const response = await fetch(`${config.authServiceUrl}/health`);
-      if (response.ok) {
-        console.log('Auth Service is ready!');
-        return true;
-      }
-    } catch (error) {
-      console.log(`Auth Service not ready yet (attempt ${i + 1})`);
-    }
-    if (i === retries - 1) {
-      console.warn('Auth Service not responding, but continuing...');
-      return false;
-    }
-    await new Promise(resolve => setTimeout(resolve, currentDelay));
-    currentDelay *= 2;
-  }
-  return false;
-};
-
 const startServer = async () => {
   try {
-    await waitForDatabase();
-    await waitForAuthService();
-
+    console.log('Starting backend...');
+    
     app.listen(port, () => {
       console.log(`Snippet manager backend running on port ${port}`);
     });
+    
+    await waitForDatabase();
+    
+    const authUrl = config.authServiceUrl;
+    console.log(`Auth-service URL: ${authUrl}`);
+    
+    setTimeout(async () => {
+      try {
+        const response = await fetch(`${authUrl}/health`);
+        if (response.ok) {
+          console.log('Auth-service is reachable');
+        } else {
+          console.log('Auth-service health check failed');
+        }
+      } catch (error) {
+        console.log('Auth-service not reachable (will retry on requests)');
+      }
+    }, 2000);
+    
   } catch (error) {
     console.error('Failed to start server:', error);
     process.exit(1);
