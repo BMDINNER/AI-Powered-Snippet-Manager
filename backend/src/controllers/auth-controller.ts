@@ -47,11 +47,6 @@ export const login = async (req: Request, res: Response) => {
       const message =
         error.response.data?.message ||
         error.response.data?.error;
-        console.error('========== AUTH SERVICE RESPONSE ==========');
-        console.error('Status:', error.response.status);
-        console.error('Headers:', error.response.headers);
-        console.error('Data:', error.response.data);
-        console.error('===========================================');
       if (status === 401) {
         return res.status(401).json({
           success: false,
