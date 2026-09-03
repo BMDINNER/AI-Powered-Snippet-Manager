@@ -7,7 +7,7 @@ if (process.env.NODE_ENV !== 'production') {
 
 
 const requiredEnvVars = ['DATABASE_URL', 'GROQ_API_KEY', 'PROJECT_ID', 'API_KEY', 'AUTH_SERVICE_URL'];
-
+console.log('AUTH_SERVICE_URL raw:', JSON.stringify(process.env.AUTH_SERVICE_URL));
 for (const envVar of requiredEnvVars) {
   if (!process.env[envVar]) {
     console.error(`FATAL ERROR: ${envVar} is not set in environment`);
