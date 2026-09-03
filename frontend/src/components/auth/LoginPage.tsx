@@ -13,7 +13,7 @@ import {
   faCode
 } from '@fortawesome/free-solid-svg-icons';
 
-const AUTH_URL = import.meta.env.VITE_AUTH_URL || 'http://localhost:3001';
+const AUTH_SERVICE_URL = import.meta.env.VITE_AUTH_URL || 'http://localhost:3001';
 
 export const LoginPage: React.FC = () => {
   const navigate = useNavigate();
@@ -31,7 +31,7 @@ export const LoginPage: React.FC = () => {
     for (let i = 0; i < retries; i++) {
       try {
         console.log(`Waking up auth-service (attempt ${i + 1}/${retries})...`);
-        const response = await fetch(`${AUTH_URL}/health`, {
+        const response = await fetch(`${AUTH_SERVICE_URL}/health`, {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',
