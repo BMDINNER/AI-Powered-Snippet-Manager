@@ -18,12 +18,12 @@ for (const envVar of requiredEnvVars) {
 export const config = {
   port: parseInt(process.env.PORT || '3002'),
   nodeEnv: process.env.NODE_ENV || 'development',
-  clientUrl: process.env.CLIENT_URL || 'http://localhost:3000',
+  clientUrl: process.env.CLIENT_URL || 'https://snippet-frontend-ujc2.onrender.com',
   databaseUrl: process.env.DATABASE_URL as string,
-  authServiceUrl: process.env.AUTH_SERVICE_URL || 'http://localhost:3001',
+  authServiceUrl: process.env.AUTH_SERVICE_URL || 'https://auth-service-xo0o.onrender.com',
   projectId: process.env.PROJECT_ID || '',
   apiKey: process.env.API_KEY || '',
   groqApiKey: process.env.GROQ_API_KEY || '',
   groqModel: process.env.GROQ_MODEL || 'openai/gpt-oss-120b',
-  corsOrigin: process.env.CORS_ORIGIN || 'http://localhost:3000',
+  corsOrigin: process.env.CORS_ORIGIN || 'https://snippet-frontend-ujc2.onrender.com',
 };
