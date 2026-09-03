@@ -2,11 +2,11 @@ import axios, { AxiosRequestConfig } from 'axios';
 import { config } from '../config/index.js';
 
 const AUTH_WAKE_TIMEOUT = 10_000;
-const AUTH_MAX_ATTEMPTS = 8;
-const AUTH_RETRY_DELAY = 3_000;
+const AUTH_MAX_ATTEMPTS = 12;
+const AUTH_RETRY_DELAY = 5_000;
 
 const sleep = (ms: number) =>
-  new Promise(resolve => setTimeout(resolve, ms));
+  new Promise<void>((resolve) => setTimeout(resolve, ms));
 
 const getAuthHeaders = () => ({
   'x-api-key': config.apiKey,
@@ -22,7 +22,7 @@ export const waitForAuthService = async (): Promise<boolean> => {
   for (let attempt = 1; attempt <= AUTH_MAX_ATTEMPTS; attempt++) {
     try {
       console.log(
-        `Auth-service health check ${attempt}/${AUTH_MAX_ATTEMPTS}`
+        `Auth-service wake/health check ${attempt}/${AUTH_MAX_ATTEMPTS}`
       );
 
       const response = await axios.get(healthUrl, {
@@ -40,11 +40,12 @@ export const waitForAuthService = async (): Promise<boolean> => {
       }
 
       console.log(
-        `Auth-service is not ready yet (${response.status}).`
+        `Auth-service is not ready yet (${response.status}). Retrying...`
       );
     } catch (error: any) {
       console.log(
-        `Auth-service connection failed (${attempt}/${AUTH_MAX_ATTEMPTS}):`,
+        `Auth-service connection failed during wake-up attempt ` +
+        `${attempt}/${AUTH_MAX_ATTEMPTS}:`,
         error.code || error.message
       );
     }
@@ -54,7 +55,10 @@ export const waitForAuthService = async (): Promise<boolean> => {
     }
   }
 
-  console.error('Auth-service did not become ready.');
+  console.error(
+    `Auth-service did not become ready after ` +
+    `${AUTH_MAX_ATTEMPTS} attempts.`
+  );
 
   return false;
 };

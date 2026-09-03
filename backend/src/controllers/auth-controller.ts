@@ -17,16 +17,16 @@ export const login = async (req: Request, res: Response) => {
       });
     }
 
-    // Auth-service uyuyorsa önce uyandır ve hazır olmasını bekle.
-    /*const authReady = await waitForAuthService();
+    const authReady = await waitForAuthService();
 
     if (!authReady) {
       return res.status(503).json({
         success: false,
-        message: 'Authentication service is temporarily unavailable. Please try again shortly.'
+        message:
+          'Authentication service is temporarily unavailable. Please try again shortly.'
       });
     }
-*/
+
     const response = await axios.post(
       `${config.authServiceUrl}/auth/project/login`,
       {
@@ -43,21 +43,25 @@ export const login = async (req: Request, res: Response) => {
     console.error('Login error:', error.message);
 
     if (error.response) {
+      console.error('========== AUTH SERVICE RESPONSE ==========');
+      console.error('Status:', error.response.status);
+      console.error('Headers:', error.response.headers);
+      console.error('Data:', error.response.data);
+      console.error('===========================================');
+
       const status = error.response.status;
+
       const message =
         error.response.data?.message ||
         error.response.data?.error;
+
       if (status === 401) {
         return res.status(401).json({
           success: false,
           message: 'Invalid email or password'
         });
-
-        
       }
 
-      // Burada 429'u "çok fazla login yaptın" olarak
-      // yanlış yorumlamıyoruz.
       if (status === 429) {
         return res.status(503).json({
           success: false,
@@ -120,6 +124,12 @@ export const register = async (req: Request, res: Response) => {
     console.error('Register error:', error.message);
 
     if (error.response) {
+      console.error('========== AUTH SERVICE RESPONSE ==========');
+      console.error('Status:', error.response.status);
+      console.error('Headers:', error.response.headers);
+      console.error('Data:', error.response.data);
+      console.error('===========================================');
+
       const status = error.response.status;
 
       const message =
@@ -195,6 +205,7 @@ export const refreshToken = async (
     }
 
     const status = error.response?.status || 500;
+
     const message =
       error.response?.data?.message || error.message;
 
@@ -212,6 +223,7 @@ export const logout = async (
 ) => {
   try {
     const { refreshToken } = req.body;
+
     const token =
       req.headers.authorization?.split(' ')[1];
 
@@ -250,6 +262,7 @@ export const logout = async (
     }
 
     const status = error.response?.status || 500;
+
     const message =
       error.response?.data?.message || error.message;
 
@@ -310,6 +323,7 @@ export const verifyToken = async (
     }
 
     const status = error.response?.status || 401;
+
     const message =
       error.response?.data?.message || 'Invalid token';
 
@@ -327,6 +341,7 @@ export const updateEmail = async (
 ) => {
   try {
     const { newEmail, password } = req.body;
+
     const token =
       req.headers.authorization?.split(' ')[1];
 
@@ -349,7 +364,10 @@ export const updateEmail = async (
 
     const response = await axios.put(
       `${config.authServiceUrl}/auth/email`,
-      { newEmail, password },
+      {
+        newEmail,
+        password
+      },
       {
         ...authRequestConfig(),
         headers: {
@@ -372,6 +390,7 @@ export const updateEmail = async (
     }
 
     const status = error.response?.status || 500;
+
     const message =
       error.response?.data?.message || error.message;
 
@@ -424,7 +443,10 @@ export const changePassword = async (
 
     const response = await axios.put(
       `${config.authServiceUrl}/auth/change-password`,
-      { currentPassword, newPassword },
+      {
+        currentPassword,
+        newPassword
+      },
       {
         ...authRequestConfig(),
         headers: {
@@ -447,6 +469,7 @@ export const changePassword = async (
     }
 
     const status = error.response?.status || 500;
+
     const message =
       error.response?.data?.message || error.message;
 
