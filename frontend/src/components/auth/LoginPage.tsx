@@ -13,7 +13,7 @@ import {
   faCode
 } from '@fortawesome/free-solid-svg-icons';
 
-const AUTH_URL = import.meta.env.VITE_AUTH_URL;
+const AUTH_URL = import.meta.env.VITE_AUTH_URL || 'http://localhost:3001';
 
 export const LoginPage: React.FC = () => {
   const navigate = useNavigate();
@@ -21,10 +21,38 @@ export const LoginPage: React.FC = () => {
   const [formData, setFormData] = useState({ email: '', password: '' });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [isWaking, setIsWaking] = useState(false);
 
   useEffect(() => {
     if (isAuthenticated) navigate('/snippets');
   }, [isAuthenticated, navigate]);
+
+  const wakeUpAuthService = async (retries = 3, delay = 2000): Promise<boolean> => {
+    for (let i = 0; i < retries; i++) {
+      try {
+        console.log(`Waking up auth-service (attempt ${i + 1}/${retries})...`);
+        const response = await fetch(`${AUTH_URL}/health`, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          signal: AbortSignal.timeout(10000),
+        });
+        if (response.ok) {
+          console.log('Auth-service is awake and ready');
+          return true;
+        }
+      } catch (error) {
+        console.log(`Auth-service not ready yet (attempt ${i + 1})`);
+        if (i === retries - 1) {
+          console.warn('Auth-service not responding, proceeding anyway...');
+          return false;
+        }
+        await new Promise(resolve => setTimeout(resolve, delay));
+      }
+    }
+    return false;
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -32,6 +60,10 @@ export const LoginPage: React.FC = () => {
     setError(null);
 
     try {
+      setIsWaking(true);
+      await wakeUpAuthService();
+      setIsWaking(false);
+
       await login({
         email: formData.email,
         password: formData.password
@@ -58,6 +90,7 @@ export const LoginPage: React.FC = () => {
       } else {
         setError('Something went wrong. Please try again.');
       }
+      setIsWaking(false);
     } finally {
       setLoading(false);
     }
@@ -79,6 +112,13 @@ export const LoginPage: React.FC = () => {
             {error && (
               <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">
                 {error}
+              </div>
+            )}
+
+            {isWaking && (
+              <div className="bg-blue-50 border border-blue-200 text-blue-700 px-4 py-3 rounded-lg text-sm flex items-center gap-2">
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-700"></div>
+                <span>Waking up service, please wait...</span>
               </div>
             )}
 
@@ -107,12 +147,12 @@ export const LoginPage: React.FC = () => {
             <Button
               type="submit"
               fullWidth
-              loading={loading}
+              loading={loading || isWaking}
               icon={faArrowRight}
               iconPosition="right"
               className="bg-gradient-to-r from-gray-800 to-gray-600 hover:from-gray-900 hover:to-gray-700 text-white py-3"
             >
-              Sign in
+              {isWaking ? 'Waking up...' : 'Sign in'}
             </Button>
 
             <p className="text-center text-gray-600">
