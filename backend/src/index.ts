@@ -81,6 +81,8 @@ const startServer = async () => {
     setTimeout(async () => {
       try {
         const response = await fetch(`${authUrl}/health`);
+        console.log('Auth-service health status:', response.status);
+        console.log('Auth-service health response:', await response.text());
         if (response.ok) {
           console.log('Auth-service is reachable');
         } else {
