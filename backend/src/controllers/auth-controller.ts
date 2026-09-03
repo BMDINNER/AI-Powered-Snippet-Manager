@@ -18,7 +18,7 @@ export const login = async (req: Request, res: Response) => {
     }
 
     // Auth-service uyuyorsa önce uyandır ve hazır olmasını bekle.
-    const authReady = await waitForAuthService();
+    /*const authReady = await waitForAuthService();
 
     if (!authReady) {
       return res.status(503).json({
@@ -26,7 +26,7 @@ export const login = async (req: Request, res: Response) => {
         message: 'Authentication service is temporarily unavailable. Please try again shortly.'
       });
     }
-
+*/
     const response = await axios.post(
       `${config.authServiceUrl}/auth/project/login`,
       {
