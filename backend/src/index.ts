@@ -20,6 +20,7 @@ const allowedOrigins = [
   'http://localhost:3000',
   'http://localhost:3005',
   'https://snippet-frontend-ujc2.onrender.com',
+  'https://auth-service-xo0o.onrender.com',
   config.corsOrigin
 ].filter(Boolean);
 
