@@ -2,7 +2,7 @@ import axios, { AxiosRequestConfig } from 'axios';
 import { config } from '../config/index.js';
 
 const AUTH_WAKE_TIMEOUT = 10_000;
-const AUTH_MAX_ATTEMPTS = 12;
+const AUTH_MAX_ATTEMPTS = 5;
 const AUTH_RETRY_DELAY = 5_000;
 
 const sleep = (ms: number) =>
