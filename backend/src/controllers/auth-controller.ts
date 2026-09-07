@@ -1,10 +1,7 @@
 import { Request, Response } from 'express';
 import { config } from '../config/index.js';
 import axios from 'axios';
-import {
-  waitForAuthService,
-  authRequestConfig
-} from '../services/auth-service.js';
+import { authRequestConfig } from '../services/auth-service.js';
 
 export const login = async (req: Request, res: Response) => {
   try {
@@ -17,23 +14,9 @@ export const login = async (req: Request, res: Response) => {
       });
     }
 
-    const authReady = await waitForAuthService();
-
-    if (!authReady) {
-      return res.status(503).json({
-        success: false,
-        message:
-          'Authentication service is temporarily unavailable. Please try again shortly.'
-      });
-    }
-
     const response = await axios.post(
       `${config.authServiceUrl}/auth/project/login`,
-      {
-        email,
-        password,
-        projectId: config.projectId
-      },
+      { email, password, projectId: config.projectId },
       authRequestConfig()
     );
 
@@ -42,18 +25,16 @@ export const login = async (req: Request, res: Response) => {
   } catch (error: any) {
     console.error('Login error:', error.message);
 
+    if (error.code === 'ECONNREFUSED' || error.code === 'ETIMEDOUT') {
+      return res.status(503).json({
+        success: false,
+        message: 'Authentication service is starting up. Please wait 10 seconds and try again.'
+      });
+    }
+
     if (error.response) {
-      console.error('========== AUTH SERVICE RESPONSE ==========');
-      console.error('Status:', error.response.status);
-      console.error('Headers:', error.response.headers);
-      console.error('Data:', error.response.data);
-      console.error('===========================================');
-
       const status = error.response.status;
-
-      const message =
-        error.response.data?.message ||
-        error.response.data?.error;
+      const message = error.response.data?.message || error.response.data?.error;
 
       if (status === 401) {
         return res.status(401).json({
@@ -65,8 +46,7 @@ export const login = async (req: Request, res: Response) => {
       if (status === 429) {
         return res.status(503).json({
           success: false,
-          message:
-            'Authentication service is temporarily unavailable. Please try again shortly.'
+          message: 'Too many requests. Please wait a moment and try again.'
         });
       }
 
@@ -85,7 +65,6 @@ export const login = async (req: Request, res: Response) => {
   }
 };
 
-
 export const register = async (req: Request, res: Response) => {
   try {
     const { email, password, username } = req.body;
@@ -97,24 +76,9 @@ export const register = async (req: Request, res: Response) => {
       });
     }
 
-    const authReady = await waitForAuthService();
-
-    if (!authReady) {
-      return res.status(503).json({
-        success: false,
-        message:
-          'Authentication service is temporarily unavailable. Please try again shortly.'
-      });
-    }
-
     const response = await axios.post(
       `${config.authServiceUrl}/auth/project/register`,
-      {
-        email,
-        password,
-        username,
-        projectId: config.projectId
-      },
+      { email, password, username, projectId: config.projectId },
       authRequestConfig()
     );
 
@@ -123,24 +87,18 @@ export const register = async (req: Request, res: Response) => {
   } catch (error: any) {
     console.error('Register error:', error.message);
 
+    if (error.code === 'ECONNREFUSED' || error.code === 'ETIMEDOUT') {
+      return res.status(503).json({
+        success: false,
+        message: 'Authentication service is starting up. Please wait 10 seconds and try again.'
+      });
+    }
+
     if (error.response) {
-      console.error('========== AUTH SERVICE RESPONSE ==========');
-      console.error('Status:', error.response.status);
-      console.error('Headers:', error.response.headers);
-      console.error('Data:', error.response.data);
-      console.error('===========================================');
-
       const status = error.response.status;
+      const message = error.response.data?.message || error.response.data?.error || 'Registration failed';
 
-      const message =
-        error.response.data?.message ||
-        error.response.data?.error ||
-        'Registration failed';
-
-      if (
-        status === 400 &&
-        message.includes('already exists')
-      ) {
+      if (status === 400 && message.includes('already exists')) {
         return res.status(400).json({
           success: false,
           message: 'Email already registered'
@@ -150,8 +108,7 @@ export const register = async (req: Request, res: Response) => {
       if (status === 429) {
         return res.status(503).json({
           success: false,
-          message:
-            'Authentication service is temporarily unavailable. Please try again shortly.'
+          message: 'Too many requests. Please wait a moment and try again.'
         });
       }
 
@@ -168,23 +125,9 @@ export const register = async (req: Request, res: Response) => {
   }
 };
 
-
-export const refreshToken = async (
-  req: Request,
-  res: Response
-) => {
+export const refreshToken = async (req: Request, res: Response) => {
   try {
     const { refreshToken } = req.body;
-
-    const authReady = await waitForAuthService();
-
-    if (!authReady) {
-      return res.status(503).json({
-        success: false,
-        message:
-          'Authentication service is temporarily unavailable.'
-      });
-    }
 
     const response = await axios.post(
       `${config.authServiceUrl}/auth/refresh`,
@@ -198,16 +141,11 @@ export const refreshToken = async (
     console.error('Refresh token error:', error.message);
 
     if (error.response) {
-      console.error(
-        'Auth service response:',
-        error.response.data
-      );
+      console.error('Auth service response:', error.response.data);
     }
 
     const status = error.response?.status || 500;
-
-    const message =
-      error.response?.data?.message || error.message;
+    const message = error.response?.data?.message || error.message;
 
     return res.status(status).json({
       success: false,
@@ -216,26 +154,10 @@ export const refreshToken = async (
   }
 };
 
-
-export const logout = async (
-  req: Request,
-  res: Response
-) => {
+export const logout = async (req: Request, res: Response) => {
   try {
     const { refreshToken } = req.body;
-
-    const token =
-      req.headers.authorization?.split(' ')[1];
-
-    const authReady = await waitForAuthService();
-
-    if (!authReady) {
-      return res.status(503).json({
-        success: false,
-        message:
-          'Authentication service is temporarily unavailable.'
-      });
-    }
+    const token = req.headers.authorization?.split(' ')[1];
 
     const response = await axios.post(
       `${config.authServiceUrl}/auth/logout`,
@@ -255,16 +177,11 @@ export const logout = async (
     console.error('Logout error:', error.message);
 
     if (error.response) {
-      console.error(
-        'Auth service response:',
-        error.response.data
-      );
+      console.error('Auth service response:', error.response.data);
     }
 
     const status = error.response?.status || 500;
-
-    const message =
-      error.response?.data?.message || error.message;
+    const message = error.response?.data?.message || error.message;
 
     return res.status(status).json({
       success: false,
@@ -273,29 +190,14 @@ export const logout = async (
   }
 };
 
-
-export const verifyToken = async (
-  req: Request,
-  res: Response
-) => {
+export const verifyToken = async (req: Request, res: Response) => {
   try {
-    const token =
-      req.headers.authorization?.split(' ')[1];
+    const token = req.headers.authorization?.split(' ')[1];
 
     if (!token) {
       return res.status(401).json({
         success: false,
         message: 'No token provided'
-      });
-    }
-
-    const authReady = await waitForAuthService();
-
-    if (!authReady) {
-      return res.status(503).json({
-        success: false,
-        message:
-          'Authentication service is temporarily unavailable.'
       });
     }
 
@@ -316,16 +218,11 @@ export const verifyToken = async (
     console.error('Verify token error:', error.message);
 
     if (error.response) {
-      console.error(
-        'Auth service response:',
-        error.response.data
-      );
+      console.error('Auth service response:', error.response.data);
     }
 
     const status = error.response?.status || 401;
-
-    const message =
-      error.response?.data?.message || 'Invalid token';
+    const message = error.response?.data?.message || 'Invalid token';
 
     return res.status(status).json({
       success: false,
@@ -334,16 +231,10 @@ export const verifyToken = async (
   }
 };
 
-
-export const updateEmail = async (
-  req: Request,
-  res: Response
-) => {
+export const updateEmail = async (req: Request, res: Response) => {
   try {
     const { newEmail, password } = req.body;
-
-    const token =
-      req.headers.authorization?.split(' ')[1];
+    const token = req.headers.authorization?.split(' ')[1];
 
     if (!newEmail || !password) {
       return res.status(400).json({
@@ -352,22 +243,9 @@ export const updateEmail = async (
       });
     }
 
-    const authReady = await waitForAuthService();
-
-    if (!authReady) {
-      return res.status(503).json({
-        success: false,
-        message:
-          'Authentication service is temporarily unavailable.'
-      });
-    }
-
     const response = await axios.put(
       `${config.authServiceUrl}/auth/email`,
-      {
-        newEmail,
-        password
-      },
+      { newEmail, password },
       {
         ...authRequestConfig(),
         headers: {
@@ -383,16 +261,11 @@ export const updateEmail = async (
     console.error('Update email error:', error.message);
 
     if (error.response) {
-      console.error(
-        'Auth service response:',
-        error.response.data
-      );
+      console.error('Auth service response:', error.response.data);
     }
 
     const status = error.response?.status || 500;
-
-    const message =
-      error.response?.data?.message || error.message;
+    const message = error.response?.data?.message || error.message;
 
     return res.status(status).json({
       success: false,
@@ -401,52 +274,28 @@ export const updateEmail = async (
   }
 };
 
-
-export const changePassword = async (
-  req: Request,
-  res: Response
-) => {
+export const changePassword = async (req: Request, res: Response) => {
   try {
-    const {
-      currentPassword,
-      newPassword
-    } = req.body;
-
-    const token =
-      req.headers.authorization?.split(' ')[1];
+    const { currentPassword, newPassword } = req.body;
+    const token = req.headers.authorization?.split(' ')[1];
 
     if (!currentPassword || !newPassword) {
       return res.status(400).json({
         success: false,
-        message:
-          'Current password and new password are required'
+        message: 'Current password and new password are required'
       });
     }
 
     if (newPassword.length < 6) {
       return res.status(400).json({
         success: false,
-        message:
-          'New password must be at least 6 characters'
-      });
-    }
-
-    const authReady = await waitForAuthService();
-
-    if (!authReady) {
-      return res.status(503).json({
-        success: false,
-        message:
-          'Authentication service is temporarily unavailable.'
+        message: 'New password must be at least 6 characters'
       });
     }
 
     const response = await axios.put(
       `${config.authServiceUrl}/auth/change-password`,
-      {
-        currentPassword,
-        newPassword
-      },
+      { currentPassword, newPassword },
       {
         ...authRequestConfig(),
         headers: {
@@ -462,16 +311,11 @@ export const changePassword = async (
     console.error('Change password error:', error.message);
 
     if (error.response) {
-      console.error(
-        'Auth service response:',
-        error.response.data
-      );
+      console.error('Auth service response:', error.response.data);
     }
 
     const status = error.response?.status || 500;
-
-    const message =
-      error.response?.data?.message || error.message;
+    const message = error.response?.data?.message || error.message;
 
     return res.status(status).json({
       success: false,
