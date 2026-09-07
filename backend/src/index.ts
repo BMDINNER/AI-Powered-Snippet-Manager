@@ -9,6 +9,7 @@ import snippetRoutes from './routes/snippet-routes.js';
 import aiRoutes from './routes/ai-routes.js';
 import { authenticate } from './middleware/auth.js';
 import { prisma } from './config/database.js';
+import { startPingService, stopPingService, forcePing } from './services/ping-service.js';
 
 const app = express();
 
@@ -60,6 +61,32 @@ app.use(express.json());
 app.get('/health', (_req, res) => {
   res.status(200).json({
     status: 'ok',
+    timestamp: new Date().toISOString()
+  });
+});
+
+
+app.post('/admin/ping-auth', async (_req, res) => {
+  try {
+    const success = await forcePing();
+    res.json({
+      success,
+      message: success ? 'Auth service pinged successfully' : 'Auth service ping failed',
+      timestamp: new Date().toISOString()
+    });
+  } catch (error: any) {
+    res.status(500).json({ 
+      success: false, 
+      message: error.message,
+      timestamp: new Date().toISOString()
+    });
+  }
+});
+
+app.get('/admin/ping-status', (_req, res) => {
+  res.json({
+    status: 'ping service is running',
+    authServiceUrl: config.authServiceUrl,
     timestamp: new Date().toISOString()
   });
 });
@@ -127,10 +154,14 @@ const startServer = async () => {
       );
     }
 
+    startPingService(10);
+
     app.listen(port, () => {
       console.log(
         `Snippet manager backend running on port ${port}`
       );
+      console.log(`Auth service ping service is active (pinging every 10 minutes)`);
+      console.log(`Manual ping available at POST /admin/ping-auth`);
     });
 
   } catch (error) {
@@ -142,5 +173,17 @@ const startServer = async () => {
     process.exit(1);
   }
 };
+
+process.on('SIGTERM', () => {
+  console.log('SIGTERM received, cleaning up...');
+  stopPingService();
+  process.exit(0);
+});
+
+process.on('SIGINT', () => {
+  console.log('SIGINT received, cleaning up...');
+  stopPingService();
+  process.exit(0);
+});
 
 startServer();
