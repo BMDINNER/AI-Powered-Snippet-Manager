@@ -7,9 +7,9 @@ import { Container } from '../ui/Container';
 import { Card } from '../ui/Card';
 import { Input } from '../ui/Input';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { 
-  faUser, 
-  faEnvelope, 
+import {
+  faUser,
+  faEnvelope,
   faCalendarAlt,
   faSignOutAlt,
   faArrowLeft,
@@ -20,14 +20,13 @@ import {
   faLock
 } from '@fortawesome/free-solid-svg-icons';
 import toast from 'react-hot-toast';
-
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3002';
+import api from '../../services/api';
 
 export const ProfilePage: React.FC = () => {
   const { user, logout } = useAuth();
   const { snippets, fetchSnippets } = useSnippets();
   const navigate = useNavigate();
-  
+
   const [isEditingEmail, setIsEditingEmail] = useState(false);
   const [isChangingPassword, setIsChangingPassword] = useState(false);
   const [newEmail, setNewEmail] = useState('');
@@ -36,10 +35,7 @@ export const ProfilePage: React.FC = () => {
   const [newPassword, setNewPassword] = useState('');
   const [confirmNewPassword, setConfirmNewPassword] = useState('');
   const [loading, setLoading] = useState(false);
-  const [stats, setStats] = useState({
-    total: 0,
-    languages: 0
-  });
+  const [stats, setStats] = useState({ total: 0, languages: 0 });
 
   useEffect(() => {
     if (!user) {
@@ -52,8 +48,7 @@ export const ProfilePage: React.FC = () => {
 
   useEffect(() => {
     if (snippets.length > 0) {
-      const languages = new Set(snippets.map(s => s.language));
-
+      const languages = new Set(snippets.map((s) => s.language));
       setStats({
         total: snippets.length,
         languages: languages.size
@@ -79,29 +74,14 @@ export const ProfilePage: React.FC = () => {
 
     setLoading(true);
     try {
-      const token = localStorage.getItem('token');
-      const response = await fetch(`${API_URL}/auth/email`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({ newEmail, password })
-      });
+      const response: any = await api.put('/auth/email', { newEmail, password });
 
-      const data = await response.json();
-      
-      if (data.success) {
+      if (response.success) {
         toast.success('Email updated successfully. Please log in again with your new email.');
-        
-        localStorage.removeItem('token');
-        localStorage.removeItem('refreshToken');
-        localStorage.removeItem('userData');
-        
         await logout();
         navigate('/login');
       } else {
-        toast.error(data.message || 'Failed to update email');
+        toast.error(response.message || 'Failed to update email');
       }
     } catch (error: any) {
       toast.error(error.message || 'Failed to update email');
@@ -111,53 +91,41 @@ export const ProfilePage: React.FC = () => {
   };
 
   const handleChangePassword = async () => {
-  if (!currentPassword || !newPassword || !confirmNewPassword) {
-    toast.error('Please fill in all fields');
-    return;
-  }
-
-  if (newPassword.length < 6) {
-    toast.error('New password must be at least 6 characters');
-    return;
-  }
-
-  if (newPassword !== confirmNewPassword) {
-    toast.error('Passwords do not match');
-    return;
-  }
-
-  setLoading(true);
-  try {
-    const token = localStorage.getItem('token');
-    const response = await fetch(`${API_URL}/auth/change-password`, {
-      method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`
-      },
-      body: JSON.stringify({ currentPassword, newPassword })
-    });
-
-    const data = await response.json();
-    
-    if (data.success) {
-      toast.success('Password changed successfully. Please log in again with your new password.');
-      
-      localStorage.removeItem('token');
-      localStorage.removeItem('refreshToken');
-      localStorage.removeItem('userData');
-      
-      await logout();
-      navigate('/login');
-    } else {
-      toast.error(data.message || 'Failed to change password');
+    if (!currentPassword || !newPassword || !confirmNewPassword) {
+      toast.error('Please fill in all fields');
+      return;
     }
-  } catch (error: any) {
-    toast.error(error.message || 'Failed to change password');
-  } finally {
-    setLoading(false);
-  }
-};
+
+    if (newPassword.length < 6) {
+      toast.error('New password must be at least 6 characters');
+      return;
+    }
+
+    if (newPassword !== confirmNewPassword) {
+      toast.error('Passwords do not match');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const response: any = await api.put('/auth/change-password', {
+        currentPassword,
+        newPassword
+      });
+
+      if (response.success) {
+        toast.success('Password changed successfully. Please log in again with your new password.');
+        await logout();
+        navigate('/login');
+      } else {
+        toast.error(response.message || 'Failed to change password');
+      }
+    } catch (error: any) {
+      toast.error(error.message || 'Failed to change password');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const formatDate = (date: string) => {
     return new Date(date).toLocaleDateString('en-US', {
@@ -187,7 +155,9 @@ export const ProfilePage: React.FC = () => {
                 <FontAwesomeIcon icon={faUser} className="h-12 w-12 text-gray-300" />
               </div>
               <div>
-                <h1 className="text-3xl md:text-4xl font-bold text-white mb-2">{user.username || 'User'}</h1>
+                <h1 className="text-3xl md:text-4xl font-bold text-white mb-2">
+                  {user.username || 'User'}
+                </h1>
                 <div className="flex flex-col sm:flex-row sm:items-center sm:space-x-4 space-y-1 sm:space-y-0 text-gray-300">
                   <span className="flex items-center text-sm">
                     <FontAwesomeIcon icon={faEnvelope} className="mr-2 h-4 w-4" />
@@ -200,7 +170,7 @@ export const ProfilePage: React.FC = () => {
                 </div>
               </div>
             </div>
-            
+
             <Button
               variant="danger"
               onClick={handleLogout}
@@ -247,7 +217,7 @@ export const ProfilePage: React.FC = () => {
               <span className="text-sm font-medium text-gray-500 sm:w-32">Username</span>
               <span className="text-gray-900">{user.username || 'Not set'}</span>
             </div>
-            
+
             <div className="flex flex-col sm:flex-row sm:items-center py-3 border-b border-gray-100">
               <span className="text-sm font-medium text-gray-500 sm:w-32">Email</span>
               {isEditingEmail ? (
@@ -355,7 +325,9 @@ export const ProfilePage: React.FC = () => {
                 </div>
               ) : (
                 <div className="flex-1 flex items-center justify-between">
-                  <span className="text-gray-500">&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;</span>
+                  <span className="text-gray-500">
+                    &bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;
+                  </span>
                   <Button
                     variant="secondary"
                     size="sm"
@@ -370,7 +342,9 @@ export const ProfilePage: React.FC = () => {
 
             <div className="flex flex-col sm:flex-row sm:items-center py-3 border-b border-gray-100">
               <span className="text-sm font-medium text-gray-500 sm:w-32">Account Type</span>
-              <span className="text-gray-900">{user.provider === 'local' ? 'Email & Password' : user.provider}</span>
+              <span className="text-gray-900">
+                {user.provider === 'local' ? 'Email & Password' : user.provider}
+              </span>
             </div>
             <div className="flex flex-col sm:flex-row sm:items-center py-3">
               <span className="text-sm font-medium text-gray-500 sm:w-32">Joined</span>

@@ -6,21 +6,28 @@ import { Input } from '../ui/Input';
 import { Button } from '../ui/Button';
 import { Container } from '../ui/Container';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { 
-  faUser, 
-  faEnvelope, 
-  faLock, 
-  faArrowRight
-} from '@fortawesome/free-solid-svg-icons';
-import { faCode } from '@fortawesome/free-solid-svg-icons';
+import { faUser, faEnvelope, faLock, faArrowRight, faCode } from '@fortawesome/free-solid-svg-icons';
 import toast from 'react-hot-toast';
+import { z } from 'zod';
+
+const registerSchema = z.object({
+  username: z.string().min(3, 'Username must be at least 3 characters'),
+  email: z.string().min(1, 'Email is required').email('Invalid email format'),
+  password: z.string().min(6, 'Password must be at least 6 characters')
+});
+
+interface ZodIssueLike {
+  path: (string | number | symbol)[];
+  message: string;
+}
 
 export const RegisterPage: React.FC = () => {
   const navigate = useNavigate();
   const { register, isAuthenticated } = useAuth();
   const [formData, setFormData] = useState({ username: '', email: '', password: '' });
+  const [errors, setErrors] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [globalError, setGlobalError] = useState<string | null>(null);
 
   useEffect(() => {
     if (isAuthenticated) navigate('/snippets');
@@ -29,31 +36,50 @@ export const RegisterPage: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    setError(null);
+    setGlobalError(null);
+    setErrors({});
+
+    const result = registerSchema.safeParse(formData);
+    if (!result.success) {
+      const validationErrors: Record<string, string> = {};
+
+      const errorObject = result.error as unknown as {
+        issues?: ZodIssueLike[];
+        errors?: ZodIssueLike[];
+      };
+
+      const rawIssues: ZodIssueLike[] = errorObject.issues ?? errorObject.errors ?? [];
+
+      rawIssues.forEach((issue) => {
+        const path = issue.path[0];
+        if (typeof path === 'string' && !validationErrors[path]) {
+          validationErrors[path] = issue.message;
+        }
+      });
+
+      setErrors(validationErrors);
+      setLoading(false);
+      return;
+    }
 
     try {
-      await register({
-        username: formData.username,
-        email: formData.email,
-        password: formData.password
-      });
-      
+      await register(formData);
       toast.success('Registration successful! Please login.');
-      localStorage.removeItem('token');
-      localStorage.removeItem('refreshToken');
-      localStorage.removeItem('userData');
       navigate('/login');
     } catch (err: any) {
       console.error('Registration error:', err);
-      
-      if (err.response?.status === 400 && err.response?.data?.message?.includes('already exists')) {
-        setError('This email is already registered. Please login instead.');
+
+      if (
+        err.response?.status === 400 &&
+        err.response?.data?.message?.includes('already exists')
+      ) {
+        setGlobalError('This email is already registered. Please login instead.');
       } else if (err.response?.data?.message) {
-        setError(err.response.data.message);
+        setGlobalError(err.response.data.message);
       } else if (err.message) {
-        setError(err.message);
+        setGlobalError(err.message);
       } else {
-        setError('Something went wrong. Please try again.');
+        setGlobalError('Something went wrong. Please try again.');
       }
     } finally {
       setLoading(false);
@@ -73,42 +99,51 @@ export const RegisterPage: React.FC = () => {
 
         <Card className="bg-white shadow-xl p-8 md:p-10">
           <form onSubmit={handleSubmit} className="space-y-6">
-            {error && (
+            {globalError && (
               <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">
-                {error}
+                {globalError}
               </div>
             )}
 
             <div className="space-y-4">
-              <Input
-                label="Username"
-                value={formData.username}
-                onChange={(e) => setFormData({ ...formData, username: e.target.value })}
-                icon={faUser}
-                required
-                placeholder="your username"
-              />
+              <div>
+                <Input
+                  label="Username"
+                  value={formData.username}
+                  onChange={(e) => setFormData({ ...formData, username: e.target.value })}
+                  icon={faUser}
+                  required
+                  placeholder="your username"
+                />
+                {errors.username && <p className="text-red-500 text-xs mt-1">{errors.username}</p>}
+              </div>
 
-              <Input
-                label="Email address"
-                type="email"
-                value={formData.email}
-                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                icon={faEnvelope}
-                required
-                placeholder="you@example.com"
-              />
+              <div>
+                <Input
+                  label="Email address"
+                  type="email"
+                  value={formData.email}
+                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                  icon={faEnvelope}
+                  required
+                  placeholder="you@example.com"
+                />
+                {errors.email && <p className="text-red-500 text-xs mt-1">{errors.email}</p>}
+              </div>
 
-              <Input
-                label="Password"
-                type="password"
-                value={formData.password}
-                onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                icon={faLock}
-                required
-                placeholder="&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;"
-                minLength={6}
-              />
+              <div>
+                <Input
+                  label="Password"
+                  type="password"
+                  value={formData.password}
+                  onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                  icon={faLock}
+                  required
+                  placeholder="&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;"
+                  minLength={6}
+                />
+                {errors.password && <p className="text-red-500 text-xs mt-1">{errors.password}</p>}
+              </div>
             </div>
 
             <Button

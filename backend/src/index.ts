@@ -1,51 +1,74 @@
-import dotenv from 'dotenv';
-dotenv.config();
-
 import express from 'express';
 import cors from 'cors';
+import helmet from 'helmet';
+import cookieParser from 'cookie-parser';
 import { config } from './config/index.js';
 import authRoutes from './routes/auth-routes.js';
 import snippetRoutes from './routes/snippet-routes.js';
 import aiRoutes from './routes/ai-routes.js';
-import { authenticate } from './middleware/auth.js';
-import { prisma } from './config/database.js';
-import { startPingService, stopPingService, forcePing } from './services/ping-service.js';
+import { prisma } from './config/prisma.js';
 
 const app = express();
-
 app.set('trust proxy', 1);
 
-const port = config.port;
+app.use((req, res, next) => {
+  console.log(`[${new Date().toISOString()}] ${req.method} ${req.path}`);
+  next();
+});
 
 const allowedOrigins = [
   'http://localhost:3000',
   'http://localhost:3005',
+  'https://snippet-frontend.onrender.com',
   'https://snippet-frontend-ujc2.onrender.com',
-  'https://auth-service-xo0o.onrender.com',
-  config.corsOrigin
-].filter(Boolean);
+  process.env.CLIENT_URL
+].filter(Boolean) as string[];
+
+app.use(
+  helmet({
+    contentSecurityPolicy: {
+      directives: {
+        defaultSrc: ["'self'"],
+        styleSrc: ["'self'", "'unsafe-inline'"],
+        styleSrcElem: ["'self'", "'unsafe-inline'"],
+        fontSrc: ["'self'"],
+        imgSrc: ["'self'", 'data:'],
+        scriptSrc: ["'self'", "'unsafe-inline'"],
+        connectSrc: ["'self'"],
+        frameSrc: ["'self'"],
+        frameAncestors: ["'none'"],
+        objectSrc: ["'none'"],
+        baseUri: ["'self'"],
+        formAction: ["'self'"],
+        upgradeInsecureRequests: []
+      }
+    },
+    crossOriginEmbedderPolicy: false,
+    crossOriginResourcePolicy: { policy: 'cross-origin' },
+    strictTransportSecurity: {
+      maxAge: 31536000,
+      includeSubDomains: true,
+      preload: true
+    },
+    xFrameOptions: { action: 'deny' },
+    xssFilter: true,
+    noSniff: true,
+    referrerPolicy: { policy: 'strict-origin-when-cross-origin' }
+  })
+);
 
 app.use(
   cors({
     origin: function (origin, callback) {
       if (!origin) return callback(null, true);
-
       if (allowedOrigins.includes(origin)) {
         callback(null, true);
       } else {
-        callback(
-          new Error(`Origin ${origin} not allowed by CORS`)
-        );
+        callback(new Error('Not allowed by CORS'));
       }
     },
     credentials: true,
-    methods: [
-      'GET',
-      'POST',
-      'PUT',
-      'DELETE',
-      'OPTIONS'
-    ],
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowedHeaders: [
       'Content-Type',
       'Authorization',
@@ -56,134 +79,137 @@ app.use(
   })
 );
 
-app.use(express.json());
+app.use(express.json({ limit: '10mb' }));
+app.use(cookieParser());
 
-app.get('/health', (_req, res) => {
-  res.status(200).json({
-    status: 'ok',
-    timestamp: new Date().toISOString()
-  });
-});
-
-
-app.post('/admin/ping-auth', async (_req, res) => {
-  try {
-    const success = await forcePing();
-    res.json({
-      success,
-      message: success ? 'Auth service pinged successfully' : 'Auth service ping failed',
-      timestamp: new Date().toISOString()
-    });
-  } catch (error: any) {
-    res.status(500).json({ 
-      success: false, 
-      message: error.message,
-      timestamp: new Date().toISOString()
-    });
-  }
-});
-
-app.get('/admin/ping-status', (_req, res) => {
+app.get('/health', (req, res) => {
   res.json({
-    status: 'ping service is running',
-    authServiceUrl: config.authServiceUrl,
-    timestamp: new Date().toISOString()
+    status: 'ok',
+    timestamp: new Date().toISOString(),
+    uptime: process.uptime()
   });
 });
 
-app.use('/auth', authRoutes);
-
-app.use(
-  '/api/snippets',
-  authenticate,
-  snippetRoutes
-);
-
-app.use(
-  '/api/ai',
-  authenticate,
-  aiRoutes
-);
-
-const waitForDatabase = async (
-  retries = 5,
-  delay = 2000
-) => {
-  for (let i = 0; i < retries; i++) {
+app.get('/ping', async (req, res) => {
+  try {
+    await prisma.$queryRaw`SELECT 1`;
+    res.json({
+      pong: true,
+      timestamp: new Date().toISOString(),
+      uptime: process.uptime(),
+      database: 'connected'
+    });
+  } catch (error) {
     try {
-      console.log(
-        `Database connection attempt ${i + 1}/${retries}...`
-      );
-
       await prisma.$connect();
-
-      console.log('Database connected');
-
-      return true;
-    } catch (error) {
-      console.log(
-        `Database not ready (attempt ${i + 1})`
-      );
-
-      if (i === retries - 1) {
-        console.error(
-          'Database connection failed after all retries'
-        );
-
-        return false;
-      }
-
-      await new Promise(resolve =>
-        setTimeout(resolve, delay)
-      );
+      res.json({
+        pong: true,
+        timestamp: new Date().toISOString(),
+        uptime: process.uptime(),
+        database: 'reconnected'
+      });
+    } catch (reconnectError) {
+      console.error('[Ping] Failed to reconnect database:', reconnectError);
+      res.status(503).json({
+        pong: false,
+        error: 'Database connection failed',
+        timestamp: new Date().toISOString()
+      });
     }
   }
+});
 
+app.use('/api/auth', authRoutes);
+app.use('/api/snippets', snippetRoutes);
+app.use('/api/ai', aiRoutes);
+
+app.use(
+  (
+    err: any,
+    req: express.Request,
+    res: express.Response,
+    next: express.NextFunction
+  ) => {
+    console.error(err.stack);
+    res.status(500).json({ message: 'Something went wrong!' });
+  }
+);
+
+const PORT = config.port;
+
+const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
+const connectDatabase = async (retries = 10, delay = 3000): Promise<boolean> => {
+  for (let attempt = 1; attempt <= retries; attempt++) {
+    try {
+      console.log(`Database connection attempt ${attempt}/${retries}...`);
+      await prisma.$connect();
+      console.log('Database connected successfully');
+      return true;
+    } catch (error: any) {
+      console.error(`Database connection failed (attempt ${attempt}):`, error.message);
+      if (attempt === retries) {
+        console.error('All database connection attempts failed');
+        return false;
+      }
+      console.log(`Retrying in ${delay}ms...`);
+      await sleep(delay);
+      delay *= 1.5;
+    }
+  }
   return false;
 };
 
-const startServer = async () => {
-  try {
-    console.log('Starting backend...');
+async function startServer() {
+  console.log('Starting code snippet service...');
 
-    const databaseReady = await waitForDatabase();
-
-    if (!databaseReady) {
-      throw new Error(
-        'Database could not be connected'
-      );
-    }
-
-    startPingService(10);
-
-    app.listen(port, () => {
-      console.log(
-        `Snippet manager backend running on port ${port}`
-      );
-      console.log(`Auth service ping service is active (pinging every 10 minutes)`);
-      console.log(`Manual ping available at POST /admin/ping-auth`);
-    });
-
-  } catch (error) {
-    console.error(
-      'Failed to start server:',
-      error
-    );
-
+  const dbConnected = await connectDatabase();
+  if (!dbConnected) {
+    console.error('Failed to connect to database on startup');
     process.exit(1);
   }
-};
 
-process.on('SIGTERM', () => {
-  console.log('SIGTERM received, cleaning up...');
-  stopPingService();
-  process.exit(0);
-});
+  const server = app.listen(PORT, '0.0.0.0', () => {
+    console.log(`Code snippet service running on port ${PORT}`);
+    console.log(`Health check available at /health`);
+    console.log(`Ping endpoint available at /ping`);
+  });
 
-process.on('SIGINT', () => {
-  console.log('SIGINT received, cleaning up...');
-  stopPingService();
-  process.exit(0);
-});
+  const gracefulShutdown = async (signal: string) => {
+    console.log(`${signal} received, starting graceful shutdown...`);
+
+    server.close(async () => {
+      console.log('HTTP server closed');
+      try {
+        await prisma.$disconnect();
+        console.log('Database disconnected');
+      } catch (error) {
+        console.error('Error disconnecting database:', error);
+      }
+      console.log('Graceful shutdown complete');
+      process.exit(0);
+    });
+
+    setTimeout(() => {
+      console.error('Forced shutdown after timeout');
+      process.exit(1);
+    }, 10000);
+  };
+
+  process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
+  process.on('SIGINT', () => gracefulShutdown('SIGINT'));
+
+  process.on('uncaughtException', async (error) => {
+    console.error('Uncaught exception:', error);
+    await gracefulShutdown('uncaughtException');
+  });
+
+  process.on('unhandledRejection', async (reason) => {
+    console.error('Unhandled rejection:', reason);
+    await gracefulShutdown('unhandledRejection');
+  });
+}
 
 startServer();
+
+export default app;

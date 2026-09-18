@@ -6,19 +6,26 @@ import { Input } from '../ui/Input';
 import { Button } from '../ui/Button';
 import { Container } from '../ui/Container';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { 
-  faEnvelope, 
-  faLock, 
-  faArrowRight,
-  faCode
-} from '@fortawesome/free-solid-svg-icons';
+import { faEnvelope, faLock, faArrowRight, faCode } from '@fortawesome/free-solid-svg-icons';
+import { z } from 'zod';
+
+const loginSchema = z.object({
+  email: z.string().min(1, 'Email is required').email('Invalid email format'),
+  password: z.string().min(6, 'Password must be at least 6 characters')
+});
+
+interface ZodIssueLike {
+  path: (string | number | symbol)[];
+  message: string;
+}
 
 export const LoginPage: React.FC = () => {
   const navigate = useNavigate();
   const { login, isAuthenticated } = useAuth();
   const [formData, setFormData] = useState({ email: '', password: '' });
+  const [errors, setErrors] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [globalError, setGlobalError] = useState<string | null>(null);
 
   useEffect(() => {
     if (isAuthenticated) navigate('/snippets');
@@ -27,34 +34,46 @@ export const LoginPage: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    setError(null);
+    setGlobalError(null);
+    setErrors({});
+
+    const result = loginSchema.safeParse(formData);
+    if (!result.success) {
+      const validationErrors: Record<string, string> = {};
+
+      const errorObject = result.error as unknown as {
+        issues?: ZodIssueLike[];
+        errors?: ZodIssueLike[];
+      };
+
+      const rawIssues: ZodIssueLike[] = errorObject.issues ?? errorObject.errors ?? [];
+
+      rawIssues.forEach((issue) => {
+        const path = issue.path[0];
+        if (typeof path === 'string' && !validationErrors[path]) {
+          validationErrors[path] = issue.message;
+        }
+      });
+
+      setErrors(validationErrors);
+      setLoading(false);
+      return;
+    }
 
     try {
-      await login({
-        email: formData.email,
-        password: formData.password
-      });
+      await login(formData);
       navigate('/snippets');
     } catch (err: any) {
       console.error('Login error:', err);
-      
+
       if (err.response?.status === 401) {
-        setError('Invalid email or password. Please try again.');
+        setGlobalError('Invalid email or password. Please try again.');
       } else if (err.response?.data?.message) {
-        const msg = err.response.data.message;
-        if (msg.includes('refresh') || msg.includes('token')) {
-          setError('Invalid email or password. Please try again.');
-        } else {
-          setError(msg);
-        }
+        setGlobalError(err.response.data.message);
       } else if (err.message) {
-        if (err.message.includes('refresh') || err.message.includes('token')) {
-          setError('Invalid email or password. Please try again.');
-        } else {
-          setError(err.message);
-        }
+        setGlobalError(err.message);
       } else {
-        setError('Something went wrong. Please try again.');
+        setGlobalError('Something went wrong. Please try again.');
       }
     } finally {
       setLoading(false);
@@ -74,32 +93,38 @@ export const LoginPage: React.FC = () => {
 
         <Card className="bg-white shadow-xl p-8 md:p-10">
           <form onSubmit={handleSubmit} className="space-y-6">
-            {error && (
+            {globalError && (
               <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">
-                {error}
+                {globalError}
               </div>
             )}
 
             <div className="space-y-4">
-              <Input
-                label="Email address"
-                type="email"
-                value={formData.email}
-                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                icon={faEnvelope}
-                required
-                placeholder="you@example.com"
-              />
+              <div>
+                <Input
+                  label="Email address"
+                  type="email"
+                  value={formData.email}
+                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                  icon={faEnvelope}
+                  required
+                  placeholder="you@example.com"
+                />
+                {errors.email && <p className="text-red-500 text-xs mt-1">{errors.email}</p>}
+              </div>
 
-              <Input
-                label="Password"
-                type="password"
-                value={formData.password}
-                onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                icon={faLock}
-                required
-                placeholder="*********"
-              />
+              <div>
+                <Input
+                  label="Password"
+                  type="password"
+                  value={formData.password}
+                  onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                  icon={faLock}
+                  required
+                  placeholder="*********"
+                />
+                {errors.password && <p className="text-red-500 text-xs mt-1">{errors.password}</p>}
+              </div>
             </div>
 
             <Button

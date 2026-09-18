@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import { AuthProvider as LogRegAuthProvider, useAuth } from '@bmdinner/logreg';
@@ -12,6 +12,7 @@ import { SnippetDetail } from './components/snippets/SnippetDetail';
 import { LoadingSpinner } from './components/ui/LoadingSpinner';
 import { AIChatPage } from './components/ai/ai-chat-page';
 import 'highlight.js/styles/atom-one-dark.css';
+
 const PrivateRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { isAuthenticated, loading } = useAuth();
   if (loading) return <LoadingSpinner size="lg" className="py-12" />;
@@ -25,14 +26,6 @@ const PublicRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 };
 
 const AppContent: React.FC = () => {
-  const { user } = useAuth();
-
-  useEffect(() => {
-    if (user) {
-      localStorage.setItem('userData', JSON.stringify(user));
-    }
-  }, [user]);
-
   return (
     <Routes>
       <Route path="/login" element={<PublicRoute><LoginPage /></PublicRoute>} />
@@ -49,19 +42,17 @@ const AppContent: React.FC = () => {
 };
 
 const App: React.FC = () => {
-  const authUrl = import.meta.env.VITE_AUTH_URL;
+  const apiUrl = import.meta.env.VITE_API_URL;
 
   return (
     <BrowserRouter>
       <LogRegAuthProvider
-        authUrl={authUrl}
-        loginEndpoint="/auth/login"
-        registerEndpoint="/auth/register"
-        logoutEndpoint="/auth/logout"
-        refreshEndpoint="/auth/refresh"
-        verifyEndpoint="/auth/verify"
-        forgotPasswordEndpoint="/auth/forgot-password"
-        resetPasswordEndpoint="/auth/reset-password"
+        authUrl={apiUrl}
+        loginEndpoint="/api/auth/login"
+        registerEndpoint="/api/auth/register"
+        logoutEndpoint="/api/auth/logout"
+        refreshEndpoint="/api/auth/refresh"
+        verifyEndpoint="/api/auth/verify"
       >
         <AppContent />
         <Toaster position="top-right" />

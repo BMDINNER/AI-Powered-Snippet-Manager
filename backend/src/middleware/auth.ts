@@ -33,52 +33,35 @@ const decodeJWT = (token: string): any => {
 };
 
 export const authenticate = async (req: Request, res: Response, next: NextFunction) => {
-  const authHeader = req.headers.authorization;
-  
-  if (!authHeader) {
+  const token = req.cookies?.token;
+
+  if (!token) {
     return res.status(401).json({ message: 'No token provided' });
   }
 
-  const parts = authHeader.split(' ');
-  
-  if (parts.length !== 2) {
-    return res.status(401).json({ message: 'Token error' });
-  }
-
-  const [scheme, token] = parts;
-  
-  if (!/^Bearer$/i.test(scheme)) {
-    return res.status(401).json({ message: 'Token malformatted' });
-  }
-
   try {
-    // Verify the token with auth service
-    const response = await axios.get(
-      `${config.authServiceUrl}/auth/token/verify`,
-      {
-        headers: {
-          ...getAuthHeaders(),
-          Authorization: `Bearer ${token}`
-        }
+    const response = await axios.get(`${config.authServiceUrl}/auth/token/verify`, {
+      headers: {
+        ...getAuthHeaders(),
+        Authorization: `Bearer ${token}`
       }
-    );
+    });
 
-    // Decode JWT to get userId
     const decoded = decodeJWT(token);
-    
+
     if (!decoded || !decoded.userId) {
       return res.status(401).json({ message: 'Invalid token payload' });
     }
 
     const { user } = response.data;
-    
+
     (req as AuthRequest).user = {
       userId: decoded.userId,
       email: user.email || decoded.email,
       username: user.username || user.email?.split('@')[0] || 'User',
       projectId: decoded.projectId || user.projectId
     };
-    
+
     return next();
   } catch (err: any) {
     console.error('Token verification failed:', err.message);
@@ -91,45 +74,28 @@ export const authenticate = async (req: Request, res: Response, next: NextFuncti
 };
 
 export const optionalAuth = async (req: Request, res: Response, next: NextFunction) => {
-  const authHeader = req.headers.authorization;
-  
-  if (!authHeader) {
-    return next();
-  }
+  const token = req.cookies?.token;
 
-  const parts = authHeader.split(' ');
-  
-  if (parts.length !== 2) {
-    return next();
-  }
-
-  const [scheme, token] = parts;
-  
-  if (!/^Bearer$/i.test(scheme)) {
+  if (!token) {
     return next();
   }
 
   try {
-    // Verify the token with auth service
-    const response = await axios.get(
-      `${config.authServiceUrl}/auth/token/verify`,
-      {
-        headers: {
-          ...getAuthHeaders(),
-          Authorization: `Bearer ${token}`
-        }
+    const response = await axios.get(`${config.authServiceUrl}/auth/token/verify`, {
+      headers: {
+        ...getAuthHeaders(),
+        Authorization: `Bearer ${token}`
       }
-    );
+    });
 
-    // Decode JWT to get userId
     const decoded = decodeJWT(token);
-    
+
     if (!decoded || !decoded.userId) {
       return next();
     }
 
     const { user } = response.data;
-    
+
     (req as AuthRequest).user = {
       userId: decoded.userId,
       email: user.email || decoded.email,
