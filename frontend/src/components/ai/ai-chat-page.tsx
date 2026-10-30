@@ -73,9 +73,9 @@ export const AIChatPage: React.FC = () => {
       
       const response = await fetch(`${API_URL}/api/ai/chat`, {
         method: 'POST',
+        credentials: 'include',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
         },
         body: JSON.stringify({
           messages: [
