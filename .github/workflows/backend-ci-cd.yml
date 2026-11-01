@@ -59,7 +59,9 @@ jobs:
         run: npm run build
         env:
           DATABASE_URL: postgresql://test:test@localhost:5432/test_db
-          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+          AI_ROUTER_BASE_URL: ${{ vars.AI_ROUTER_BASE_URL || 'http://localhost:4100/v1' }}
+          AI_ROUTER_API_KEY: ${{ secrets.AI_ROUTER_API_KEY }}
+          AI_ROUTER_MODEL: ${{ vars.AI_ROUTER_MODEL || 'openai/gpt-oss-120b' }}
 
   deploy:
     needs: test

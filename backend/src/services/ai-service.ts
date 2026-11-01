@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { groqService } from '../services/groq-service.js';
+import { aiRouterService } from './ai-router-service.js';
 
 export const generateSnippet = async (req: Request, res: Response) => {
   try {
@@ -12,13 +12,13 @@ export const generateSnippet = async (req: Request, res: Response) => {
       });
     }
 
-    const code = await groqService.generateCode(prompt, language);
+    const code = await aiRouterService.generateCode(prompt, language);
 
     const titlePrompt = `Generate a short, descriptive title (max 5 words) for a code snippet that does this: ${prompt}. Return ONLY the title, nothing else.`;
-    const title = await groqService.generateText(titlePrompt);
+    const title = await aiRouterService.generateText(titlePrompt);
 
     const tagsPrompt = `Generate 3-5 relevant tags (single words, comma-separated) for a code snippet that does this: ${prompt}. Return ONLY the tags, nothing else. Example format: react, api, hooks`;
-    const tagsResponse = await groqService.generateText(tagsPrompt);
+    const tagsResponse = await aiRouterService.generateText(tagsPrompt);
     const tags = tagsResponse.split(',').map(t => t.trim()).filter(Boolean);
 
     res.json({
@@ -51,7 +51,7 @@ export const improveSnippet = async (req: Request, res: Response) => {
       });
     }
 
-    const improvedCode = await groqService.optimizeCode(code, 'code');
+    const improvedCode = await aiRouterService.optimizeCode(code, 'code');
 
     res.json({
       success: true,
@@ -79,7 +79,7 @@ export const explainCode = async (req: Request, res: Response) => {
       });
     }
 
-    const explanation = await groqService.explainCode(code);
+    const explanation = await aiRouterService.explainCode(code);
 
     res.json({
       success: true,
@@ -107,7 +107,7 @@ export const chatWithAI = async (req: Request, res: Response) => {
       });
     }
 
-    const response = await groqService.chat(messages);
+    const response = await aiRouterService.chat(messages);
 
     res.json({
       success: true,
@@ -126,12 +126,12 @@ export const chatWithAI = async (req: Request, res: Response) => {
 
 export const checkHealth = async (req: Request, res: Response) => {
   try {
-    const health = await groqService.checkHealth();
+    const health = await aiRouterService.checkHealth();
     res.json({
       success: true,
       data: {
         healthy: health.available,
-        model: process.env.GROQ_MODEL || 'openai/gpt-oss-120b'
+        model: process.env.AI_ROUTER_MODEL || 'openai/gpt-oss-120b'
       }
     });
   } catch (error: any) {
