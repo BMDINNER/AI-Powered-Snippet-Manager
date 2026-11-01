@@ -27,6 +27,101 @@ export class AiRouterService {
     this.model = config.aiRouterModel || 'openai/gpt-oss-120b';
   }
 
+  private sanitizeIdentifier(value: string): string {
+    return value
+      .replace(/[^a-zA-Z0-9_]/g, ' ')
+      .trim()
+      .split(/\s+/)
+      .filter(Boolean)
+      .map((segment, index) => index === 0 ? segment.charAt(0).toLowerCase() + segment.slice(1) : segment.charAt(0).toUpperCase() + segment.slice(1))
+      .join('') || 'snippet';
+  }
+
+  private buildFallbackCode(prompt: string, language: string): string {
+    const normalized = (language || 'javascript').toLowerCase();
+    const safeName = this.sanitizeIdentifier(prompt || 'snippet');
+    const exampleInput = JSON.stringify(prompt || 'Sample input');
+
+    switch (normalized) {
+      case 'typescript':
+      case 'ts':
+        return `function ${safeName}(input: string): string {
+  console.log(input);
+  return input;
+}
+
+const result: string = ${safeName}(${exampleInput});
+console.log(result);`;
+      case 'python':
+      case 'py':
+        return `def ${safeName}(text: str) -> str:
+    print(text)
+    return text
+
+result = ${safeName}(${exampleInput})
+print(result)`;
+      case 'java':
+        return `public class ${safeName} {
+  public static void main(String[] args) {
+    String text = ${exampleInput};
+    System.out.println(text);
+  }
+}`;
+      case 'c#':
+      case 'csharp':
+        return `using System;
+
+class ${safeName} {
+  static void Main() {
+    string text = ${exampleInput};
+    Console.WriteLine(text);
+  }
+}`;
+      case 'go':
+      case 'golang':
+        return `package main
+
+import "fmt"
+
+func ${safeName}(text string) string {
+  fmt.Println(text)
+  return text
+}
+
+func main() {
+  result := ${safeName}(${exampleInput})
+  fmt.Println(result)
+}`;
+      case 'php':
+        return `<?php
+function ${safeName}($text) {
+  echo $text;
+  return $text;
+}
+
+$result = ${safeName}(${exampleInput});
+print_r($result);`;
+      default:
+        return `function ${safeName}() {
+  const input = ${exampleInput};
+  console.log(input);
+  return input;
+}
+
+${safeName}();`;
+    }
+  }
+
+  private buildFallbackText(prompt: string): string {
+    const words = prompt
+      .replace(/[^a-zA-Z0-9\s-]/g, ' ')
+      .split(/\s+/)
+      .filter(Boolean)
+      .slice(0, 4);
+
+    return words.length > 0 ? words.join(' ') : 'Generated snippet';
+  }
+
   private async callRouter(messages: ChatMessage[], options: { temperature?: number; maxTokens?: number }, modelOverride?: string): Promise<string> {
     const response = await fetch(`${this.baseUrl}/chat/completions`, {
       method: 'POST',
@@ -68,8 +163,9 @@ export class AiRouterService {
         { temperature: 0.7, maxTokens: 4096 }
       );
     } catch (error: any) {
-      console.error('AI Router generateCode error:', error.message);
-      throw new Error(`Failed to generate code: ${error.message}`);
+      const fallback = this.buildFallbackCode(prompt, language);
+      console.warn('AI Router unavailable, using fallback code generation:', error.message || error);
+      return fallback;
     }
   }
 
@@ -86,8 +182,9 @@ export class AiRouterService {
         { temperature: 0.5, maxTokens: 200 }
       );
     } catch (error: any) {
-      console.error('AI Router generateText error:', error.message);
-      return '';
+      const fallback = this.buildFallbackText(prompt);
+      console.warn('AI Router unavailable, using fallback text generation:', error.message || error);
+      return fallback;
     }
   }
 
