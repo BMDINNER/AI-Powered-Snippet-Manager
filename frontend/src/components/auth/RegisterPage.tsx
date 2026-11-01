@@ -63,7 +63,10 @@ export const RegisterPage: React.FC = () => {
     }
 
     try {
-      await register(formData);
+      const authResult = await register(formData);
+      if (authResult?.csrfToken) {
+        localStorage.setItem('csrfToken', authResult.csrfToken);
+      }
       toast.success('Registration successful! Please login.');
       navigate('/login');
     } catch (err: any) {

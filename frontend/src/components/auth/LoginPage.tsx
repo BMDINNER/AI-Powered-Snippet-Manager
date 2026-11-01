@@ -61,7 +61,10 @@ export const LoginPage: React.FC = () => {
     }
 
     try {
-      await login(formData);
+      const authResult = await login(formData);
+      if (authResult?.csrfToken) {
+        localStorage.setItem('csrfToken', authResult.csrfToken);
+      }
       navigate('/snippets');
     } catch (err: any) {
       console.error('Login error:', err);

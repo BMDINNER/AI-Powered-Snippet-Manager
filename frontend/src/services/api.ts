@@ -5,6 +5,9 @@ const apiUrl = import.meta.env.VITE_API_URL;
 const getCsrfToken = (): string | null => {
   if (typeof document === 'undefined') return null;
 
+  const localToken = localStorage.getItem('csrfToken');
+  if (localToken) return localToken;
+
   const match = document.cookie
     .split('; ')
     .find((cookie) => cookie.startsWith('csrfToken='));

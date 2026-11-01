@@ -38,6 +38,7 @@ const setAuthCookies = (res: Response, token: string, refreshToken: string) => {
 
   const csrfToken = crypto.randomBytes(32).toString('hex');
   setCsrfCookie(res, csrfToken);
+  return csrfToken;
 };
 
 const clearAuthCookies = (res: Response) => {
@@ -89,15 +90,17 @@ export const login = async (req: Request, res: Response) => {
     );
 
     const { token, refreshToken, user, project } = response.data;
+    let csrfToken: string | undefined;
 
     if (token && refreshToken) {
-      setAuthCookies(res, token, refreshToken);
+      csrfToken = setAuthCookies(res, token, refreshToken);
     }
 
     return res.json({
       success: true,
       user,
-      project
+      project,
+      csrfToken
     });
   } catch (error: any) {
     console.error('Login error:', error.message);
@@ -120,15 +123,17 @@ export const login = async (req: Request, res: Response) => {
         );
 
         const { token, refreshToken, user, project } = retryResponse.data;
+        let csrfToken: string | undefined;
 
         if (token && refreshToken) {
-          setAuthCookies(res, token, refreshToken);
+          csrfToken = setAuthCookies(res, token, refreshToken);
         }
 
         return res.json({
           success: true,
           user,
-          project
+          project,
+          csrfToken
         });
       } catch (retryError: any) {
         console.error('Login retry error:', retryError.message);
@@ -196,15 +201,17 @@ export const register = async (req: Request, res: Response) => {
     );
 
     const { token, refreshToken, user, project } = response.data;
+    let csrfToken: string | undefined;
 
     if (token && refreshToken) {
-      setAuthCookies(res, token, refreshToken);
+      csrfToken = setAuthCookies(res, token, refreshToken);
     }
 
     return res.json({
       success: true,
       user,
-      project
+      project,
+      csrfToken
     });
   } catch (error: any) {
     console.error('Register error:', error.message);
@@ -228,15 +235,17 @@ export const register = async (req: Request, res: Response) => {
         );
 
         const { token, refreshToken, user, project } = retryResponse.data;
+        let csrfToken: string | undefined;
 
         if (token && refreshToken) {
-          setAuthCookies(res, token, refreshToken);
+          csrfToken = setAuthCookies(res, token, refreshToken);
         }
 
         return res.json({
           success: true,
           user,
-          project
+          project,
+          csrfToken
         });
       } catch (retryError: any) {
         console.error('Register retry error:', retryError.message);

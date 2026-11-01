@@ -23,11 +23,20 @@ export const csrfProtection = (req: Request, res: Response, next: NextFunction) 
   }
 
   const origin = req.get('origin');
-  if (origin && !isAllowedOrigin(origin)) {
-    return res.status(403).json({
-      success: false,
-      message: 'Forbidden: invalid origin'
-    });
+
+  if (origin) {
+    const normalizedOrigin = origin.trim();
+    if (!isAllowedOrigin(normalizedOrigin)) {
+      return res.status(403).json({
+        success: false,
+        message: 'Forbidden: invalid origin'
+      });
+    }
+
+    // Mailbox/axios/browser clients from trusted origins often cannot read a backend cookie
+    // when the frontend and API are hosted on different domains, so we allow trusted-origin
+    // browser requests to proceed without a token while still rejecting untrusted origins.
+    return next();
   }
 
   const cookieToken = req.cookies?.csrfToken;
