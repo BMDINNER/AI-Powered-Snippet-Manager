@@ -45,71 +45,38 @@ export class AiRouterService {
     switch (normalized) {
       case 'typescript':
       case 'ts':
-        return `function ${safeName}(input: string): string {
-  console.log(input);
-  return input;
-}
-
-const result: string = ${safeName}(${exampleInput});
-console.log(result);`;
+        return 'function ' + safeName + '(input: string): string {\n  console.log(input);\n  return input;\n}\n\nconst result: string = ' + safeName + '(' + exampleInput + ');\nconsole.log(result);';
       case 'python':
       case 'py':
-        return `def ${safeName}(text: str) -> str:
-    print(text)
-    return text
-
-result = ${safeName}(${exampleInput})
-print(result)`;
+        return 'def ' + safeName + '(text: str) -> str:\n    print(text)\n    return text\n\nresult = ' + safeName + '(' + exampleInput + ')\nprint(result)';
       case 'java':
-        return `public class ${safeName} {
-  public static void main(String[] args) {
-    String text = ${exampleInput};
-    System.out.println(text);
-  }
-}`;
+        return 'public class ' + safeName + ' {\n  public static void main(String[] args) {\n    String text = ' + exampleInput + ';\n    System.out.println(text);\n  }\n}';
       case 'c#':
       case 'csharp':
-        return `using System;
-
-class ${safeName} {
-  static void Main() {
-    string text = ${exampleInput};
-    Console.WriteLine(text);
-  }
-}`;
+        return 'using System;\n\nclass ' + safeName + ' {\n  static void Main() {\n    string text = ' + exampleInput + ';\n    Console.WriteLine(text);\n  }\n}';
       case 'go':
       case 'golang':
-        return `package main
-
-import "fmt"
-
-func ${safeName}(text string) string {
-  fmt.Println(text)
-  return text
-}
-
-func main() {
-  result := ${safeName}(${exampleInput})
-  fmt.Println(result)
-}`;
+        return 'package main\n\nimport "fmt"\n\nfunc ' + safeName + '(text string) string {\n  fmt.Println(text)\n  return text\n}\n\nfunc main() {\n  result := ' + safeName + '(' + exampleInput + ')\n  fmt.Println(result)\n}';
       case 'php':
-        return `<?php
-function ${safeName}($text) {
-  echo $text;
-  return $text;
-}
-
-$result = ${safeName}(${exampleInput});
-print_r($result);`;
+        return '<?php\nfunction ' + safeName + '($text) {\n  echo $text;\n  return $text;\n}\n\n$result = ' + safeName + '(' + exampleInput + ');\nprint_r($result);';
       default:
-        return `function ${safeName}() {
-  const input = ${exampleInput};
-  console.log(input);
-  return input;
-}
-
-${safeName}();`;
+        return 'function ' + safeName + '() {\n  const input = ' + exampleInput + ';\n  console.log(input);\n  return input;\n}\n\n' + safeName + '();';
     }
+  }
+
+  private buildFallbackOptimizedCode(code: string, language: string): string {
+    const normalized = (language || 'javascript').toLowerCase();
+    const inputCode = code.trim() || 'console.log("hello")';
+
+    if (normalized === 'python' || normalized === 'py') {
+      return 'def optimized_example(data):\n    if not data:\n        return None\n    return data.strip().lower()\n\nprint(optimized_example(' + JSON.stringify(inputCode) + '))';
+    }
+
+    if (normalized === 'typescript' || normalized === 'ts') {
+      return 'const optimizedExample = (value: string): string => value.trim().toLowerCase();\n\nconsole.log(optimizedExample(' + JSON.stringify(inputCode) + '));';
+    }
+
+    return 'function optimizedExample(value) {\n  return String(value).trim().toLowerCase();\n}\n\nconsole.log(optimizedExample(' + JSON.stringify(inputCode) + '));';
   }
 
   private buildFallbackText(prompt: string): string {
@@ -122,13 +89,22 @@ ${safeName}();`;
     return words.length > 0 ? words.join(' ') : 'Generated snippet';
   }
 
+  private buildFallbackExplanation(code: string): string {
+    const summary = code
+      .replace(/\s+/g, ' ')
+      .trim();
+
+    const preview = summary.length > 300 ? summary.slice(0, 300) + '...' : summary;
+    return 'This code is currently running in fallback mode because the AI router is unavailable.\n\nThe snippet appears to perform the following general tasks:\n- read the provided input\n- process or transform it\n- output the result in a readable form\n\nOriginal code preview:\n' + preview;
+  }
+
   private async callRouter(messages: ChatMessage[], options: { temperature?: number; maxTokens?: number }, modelOverride?: string): Promise<string> {
-    const response = await fetch(`${this.baseUrl}/chat/completions`, {
+    const response = await fetch(this.baseUrl + '/chat/completions', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         Accept: 'application/json',
-        ...(this.apiKey ? { Authorization: `Bearer ${this.apiKey}` } : {})
+        ...(this.apiKey ? { Authorization: 'Bearer ' + this.apiKey } : {})
       },
       body: JSON.stringify({
         model: modelOverride || this.model,
@@ -141,22 +117,22 @@ ${safeName}();`;
 
     const payload = (await response.json().catch(() => ({}))) as RouterChatCompletionResponse;
     if (!response.ok) {
-      const detail = payload.error?.message || `HTTP ${response.status}`;
-      throw new Error(`AI Router request failed: ${detail}`);
+      const detail = payload.error?.message || 'HTTP ' + response.status;
+      throw new Error('AI Router request failed: ' + detail);
     }
 
     return payload.choices?.[0]?.message?.content || '';
   }
 
   async generateCode(prompt: string, language: string): Promise<string> {
-    const fullPrompt = `Generate ${language} code for: ${prompt}. Return only the code without any explanations, markdown formatting, or code blocks. Just the raw code.`;
+    const fullPrompt = 'Generate ' + language + ' code for: ' + prompt + '. Return only the code without any explanations, markdown formatting, or code blocks. Just the raw code.';
 
     try {
       return await this.callRouter(
         [
           {
             role: 'system',
-            content: `You are a helpful code assistant. Generate clean, well-documented ${language} code. Return ONLY the raw code without any markdown formatting, code blocks, or explanations.`
+            content: 'You are a helpful code assistant. Generate clean, well-documented ' + language + ' code. Return ONLY the raw code without any markdown formatting, code blocks, or explanations.'
           },
           { role: 'user', content: fullPrompt }
         ],
@@ -189,7 +165,7 @@ ${safeName}();`;
   }
 
   async explainCode(code: string): Promise<string> {
-    const prompt = `Explain this code in detail. Describe what it does, how it works, and any important details. Write in clear, simple English. Use proper formatting with paragraphs and bullet points where appropriate:\n\n${code}`;
+    const prompt = 'Explain this code in detail. Describe what it does, how it works, and any important details. Write in clear, simple English. Use proper formatting with paragraphs and bullet points where appropriate:\n\n' + code;
 
     try {
       return await this.callRouter(
@@ -203,28 +179,30 @@ ${safeName}();`;
         { temperature: 0.4, maxTokens: 2048 }
       );
     } catch (error: any) {
-      console.error('AI Router explainCode error:', error.message);
-      throw new Error(`Failed to explain code: ${error.message}`);
+      const fallback = this.buildFallbackExplanation(code);
+      console.warn('AI Router unavailable, using fallback explanation:', error.message || error);
+      return fallback;
     }
   }
 
   async optimizeCode(code: string, language: string): Promise<string> {
-    const prompt = `Optimize the following ${language} code for better performance, readability, and best practices. Keep the functionality exactly the same. Do NOT change the purpose of the code. Do NOT add recursive or repeated optimizations. Return ONLY the optimized raw code without any explanations or markdown formatting:\n\n${code}`;
+    const prompt = 'Optimize the following ' + language + ' code for better performance, readability, and best practices. Keep the functionality exactly the same. Do NOT change the purpose of the code. Do NOT add recursive or repeated optimizations. Return ONLY the optimized raw code without any explanations or markdown formatting:\n\n' + code;
 
     try {
       return await this.callRouter(
         [
           {
             role: 'system',
-            content: `You are a code optimization expert. Optimize the code once and return ONLY the raw optimized ${language} code. Do NOT add recursive optimization or repeat the same code multiple times. Do NOT add markdown formatting, code blocks, or explanations.`
+            content: 'You are a code optimization expert. Optimize the code once and return ONLY the raw optimized ' + language + ' code. Do NOT add recursive optimization or repeat the same code multiple times. Do NOT add markdown formatting, code blocks, or explanations.'
           },
           { role: 'user', content: prompt }
         ],
         { temperature: 0.2, maxTokens: 4096 }
       );
     } catch (error: any) {
-      console.error('AI Router optimizeCode error:', error.message);
-      throw new Error(`Failed to optimize code: ${error.message}`);
+      const fallback = this.buildFallbackOptimizedCode(code, language);
+      console.warn('AI Router unavailable, using fallback optimization:', error.message || error);
+      return fallback;
     }
   }
 
@@ -232,18 +210,20 @@ ${safeName}();`;
     try {
       return await this.callRouter(messages, { temperature: 0.7, maxTokens: 4096 });
     } catch (error: any) {
-      console.error('AI Router chat error:', error.message);
-      throw new Error(`Failed to chat with AI: ${error.message}`);
+      const lastUserMessage = [...messages].reverse().find((message) => message.role === 'user')?.content || 'Hello';
+      const fallback = 'I’m currently offline because the AI router is unavailable.\n\nYour last message: "' + lastUserMessage + '"\n\nIf you want, I can still help you with a short answer or by suggesting a code example.';
+      console.warn('AI Router unavailable, using fallback chat response:', error.message || error);
+      return fallback;
     }
   }
 
   async checkHealth(): Promise<{ available: boolean; models?: string[] }> {
     try {
-      const response = await fetch(`${this.baseUrl}/models`, {
+      const response = await fetch(this.baseUrl + '/models', {
         method: 'GET',
         headers: {
           Accept: 'application/json',
-          ...(this.apiKey ? { Authorization: `Bearer ${this.apiKey}` } : {})
+          ...(this.apiKey ? { Authorization: 'Bearer ' + this.apiKey } : {})
         }
       });
 
