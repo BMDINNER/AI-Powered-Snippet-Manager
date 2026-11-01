@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { snippetController } from '../controllers/snippet-controller.js';
 import { authenticate, optionalAuth } from '../middleware/auth.js';
+import { csrfProtection } from '../middleware/csrf.js';
 
 const router = Router();
 const controller = snippetController;
@@ -13,8 +14,8 @@ router.get('/categories', optionalAuth, controller.getCategories.bind(controller
 router.get('/:id', optionalAuth, controller.getSnippet.bind(controller));
 
 // Protected routes (require authentication)
-router.post('/', authenticate, controller.createSnippet.bind(controller));
-router.put('/:id', authenticate, controller.updateSnippet.bind(controller));
-router.delete('/:id', authenticate, controller.deleteSnippet.bind(controller));
+router.post('/', authenticate, csrfProtection, controller.createSnippet.bind(controller));
+router.put('/:id', authenticate, csrfProtection, controller.updateSnippet.bind(controller));
+router.delete('/:id', authenticate, csrfProtection, controller.deleteSnippet.bind(controller));
 
 export default router;

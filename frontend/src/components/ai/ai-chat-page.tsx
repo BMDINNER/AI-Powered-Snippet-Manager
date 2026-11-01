@@ -69,13 +69,17 @@ export const AIChatPage: React.FC = () => {
     setLoading(true);
 
     try {
-      const token = localStorage.getItem('token');
-      
+      const token = document.cookie
+        .split('; ')
+        .find((cookie) => cookie.startsWith('csrfToken='));
+      const csrfToken = token ? decodeURIComponent(token.split('=').slice(1).join('=')) : null;
+
       const response = await fetch(`${API_URL}/api/ai/chat`, {
         method: 'POST',
         credentials: 'include',
         headers: {
           'Content-Type': 'application/json',
+          ...(csrfToken ? { 'X-CSRF-Token': csrfToken } : {})
         },
         body: JSON.stringify({
           messages: [

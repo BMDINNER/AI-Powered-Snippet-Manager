@@ -19,6 +19,7 @@ app.use((req, res, next) => {
 const allowedOrigins = [
   'http://localhost:3000',
   'http://localhost:3005',
+  'http://localhost:5173',
   'https://snippet-frontend.onrender.com',
   'https://snippet-frontend-ujc2.onrender.com',
   process.env.CLIENT_URL
@@ -73,6 +74,9 @@ app.use(
       'Content-Type',
       'Authorization',
       'Accept',
+      'Origin',
+      'X-CSRF-Token',
+      'X-XSRF-Token',
       'x-api-key',
       'x-project-id'
     ]

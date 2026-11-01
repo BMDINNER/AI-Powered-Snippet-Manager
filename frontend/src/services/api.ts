@@ -2,11 +2,35 @@ import axios, { AxiosInstance, AxiosResponse, InternalAxiosRequestConfig } from 
 
 const apiUrl = import.meta.env.VITE_API_URL;
 
+const getCsrfToken = (): string | null => {
+  if (typeof document === 'undefined') return null;
+
+  const match = document.cookie
+    .split('; ')
+    .find((cookie) => cookie.startsWith('csrfToken='));
+
+  return match ? decodeURIComponent(match.split('=').slice(1).join('=')) : null;
+};
+
 const api: AxiosInstance = axios.create({
   baseURL: `${apiUrl}/api`,
   headers: { 'Content-Type': 'application/json' },
   withCredentials: true,
   timeout: 300000
+});
+
+api.interceptors.request.use((config) => {
+  const method = config.method?.toUpperCase() ?? 'GET';
+  if (!['GET', 'HEAD', 'OPTIONS'].includes(method)) {
+    const csrfToken = getCsrfToken();
+    if (csrfToken) {
+      config.headers = {
+        ...config.headers,
+        'X-CSRF-Token': csrfToken
+      };
+    }
+  }
+  return config;
 });
 
 let isRefreshing = false;

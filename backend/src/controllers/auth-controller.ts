@@ -1,8 +1,10 @@
 import { Request, Response } from 'express';
+import crypto from 'crypto';
 import { config } from '../config/index.js';
 import axios from 'axios';
 import { authRequestConfig } from '../services/auth-service.js';
 import { forcePing } from '../services/ping-service.js';
+import { setCsrfCookie } from '../middleware/csrf.js';
 
 const isProduction = process.env.NODE_ENV === 'production';
 
@@ -22,9 +24,20 @@ const refreshTokenCookieOptions = {
   path: '/'
 };
 
+const csrfCookieOptions = {
+  httpOnly: false,
+  secure: isProduction,
+  sameSite: (isProduction ? 'none' : 'lax') as 'none' | 'lax',
+  maxAge: 60 * 60 * 1000,
+  path: '/'
+};
+
 const setAuthCookies = (res: Response, token: string, refreshToken: string) => {
   if (token) res.cookie('token', token, accessTokenCookieOptions);
   if (refreshToken) res.cookie('refreshToken', refreshToken, refreshTokenCookieOptions);
+
+  const csrfToken = crypto.randomBytes(32).toString('hex');
+  setCsrfCookie(res, csrfToken);
 };
 
 const clearAuthCookies = (res: Response) => {
@@ -39,6 +52,22 @@ const clearAuthCookies = (res: Response) => {
     secure: isProduction,
     sameSite: (isProduction ? 'none' : 'lax') as 'none' | 'lax',
     path: '/'
+  });
+  res.clearCookie('csrfToken', {
+    httpOnly: false,
+    secure: isProduction,
+    sameSite: (isProduction ? 'none' : 'lax') as 'none' | 'lax',
+    path: '/'
+  });
+};
+
+export const getCsrfToken = (_req: Request, res: Response) => {
+  const csrfToken = crypto.randomBytes(32).toString('hex');
+  setCsrfCookie(res, csrfToken);
+
+  return res.json({
+    success: true,
+    csrfToken
   });
 };
 
@@ -275,6 +304,8 @@ export const refreshToken = async (req: Request, res: Response) => {
 
     if (token) {
       res.cookie('token', token, accessTokenCookieOptions);
+      const csrfToken = crypto.randomBytes(32).toString('hex');
+      setCsrfCookie(res, csrfToken);
     }
 
     return res.json({
@@ -301,6 +332,8 @@ export const refreshToken = async (req: Request, res: Response) => {
 
         if (token) {
           res.cookie('token', token, accessTokenCookieOptions);
+          const csrfToken = crypto.randomBytes(32).toString('hex');
+          setCsrfCookie(res, csrfToken);
         }
 
         return res.json({
