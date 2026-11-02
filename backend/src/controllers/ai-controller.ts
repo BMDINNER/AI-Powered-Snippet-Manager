@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { aiRouterService } from '../services/ai-router-service.js';
+import { groqService } from '../services/groq-service.js';
 
 const stripCodeBlock = (code: string): string => {
   if (!code) return '';
@@ -49,7 +49,7 @@ export const generateSnippet = async (req: Request, res: Response) => {
       });
     }
 
-    const code = await aiRouterService.generateCode(prompt, language);
+    const code = await groqService.generateCode(prompt, language);
     const cleanCode = stripCodeBlock(code);
 
     if (!cleanCode || cleanCode.length === 0) {
@@ -60,7 +60,7 @@ export const generateSnippet = async (req: Request, res: Response) => {
     }
 
     const titlePrompt = `Generate a short, descriptive title (max 5 words) for a code snippet that does this: ${prompt}. Return ONLY the title, nothing else.`;
-    let title = await aiRouterService.generateText(titlePrompt);
+    let title = await groqService.generateText(titlePrompt);
     title = title.replace(/^["']|["']$/g, '').trim();
 
     if (!title || title.length === 0) {
@@ -68,7 +68,7 @@ export const generateSnippet = async (req: Request, res: Response) => {
     }
 
     const tagsPrompt = `Generate 3-5 relevant tags (single words, comma-separated) for a code snippet that does this: ${prompt}. Return ONLY the tags, nothing else. Example format: react, api, hooks`;
-    const tagsResponse = await aiRouterService.generateText(tagsPrompt);
+    const tagsResponse = await groqService.generateText(tagsPrompt);
     const tags = tagsResponse.split(',').map(t => t.trim().replace(/^["']|["']$/g, '')).filter(Boolean);
 
     const markdownCode = `\`\`\`${language}\n${cleanCode}\n\`\`\``;
@@ -129,7 +129,7 @@ export const improveSnippet = async (req: Request, res: Response) => {
       });
     }
 
-    const improvedCode = await aiRouterService.optimizeCode(cleanCode, detectedLanguage);
+    const improvedCode = await groqService.optimizeCode(cleanCode, detectedLanguage);
     const finalCode = stripCodeBlock(improvedCode);
 
     if (!finalCode || finalCode.length === 0) {
@@ -181,7 +181,7 @@ export const explainCode = async (req: Request, res: Response) => {
       });
     }
 
-    const explanation = await aiRouterService.explainCode(cleanCode);
+    const explanation = await groqService.explainCode(cleanCode);
 
     if (!explanation || explanation.length === 0) {
       return res.status(500).json({
@@ -224,7 +224,7 @@ export const chatWithAI = async (req: Request, res: Response) => {
       });
     }
 
-    const response = await aiRouterService.chat(messages);
+    const response = await groqService.chat(messages);
 
     res.json({
       success: true,
@@ -251,7 +251,7 @@ export const chatWithAI = async (req: Request, res: Response) => {
 
 export const checkHealth = async (req: Request, res: Response) => {
   try {
-    const health = await aiRouterService.checkHealth();
+    const health = await groqService.checkHealth();
     res.json({
       success: true,
       data: {

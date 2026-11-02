@@ -1,6 +1,2 @@
-import { GroqService } from './groq-service.js';
+export { groqService as aiRouterService, default } from './groq-service.js';
 
-export class AiRouterService extends GroqService {}
-
-export const aiRouterService = new AiRouterService();
-export default aiRouterService;

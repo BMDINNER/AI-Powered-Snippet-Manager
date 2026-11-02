@@ -15,9 +15,6 @@ for (const envVar of requiredEnvVars) {
 
 const groqApiKey = process.env.GROQ_API_KEY || '';
 const groqModel = process.env.GROQ_MODEL || 'llama-3.3-70b-versatile';
-const aiRouterBaseUrl = process.env.AI_ROUTER_BASE_URL || 'http://localhost:4100/v1';
-const aiRouterApiKey = process.env.AI_ROUTER_API_KEY || groqApiKey;
-const aiRouterModel = process.env.AI_ROUTER_MODEL || groqModel;
 
 export const config = {
   port: parseInt(process.env.PORT || '3002'),
@@ -29,8 +26,5 @@ export const config = {
   apiKey: process.env.API_KEY || '',
   groqApiKey,
   groqModel,
-  aiRouterBaseUrl,
-  aiRouterApiKey,
-  aiRouterModel,
   corsOrigin: process.env.CORS_ORIGIN || 'https://snippet-frontend-ujc2.onrender.com',
 };

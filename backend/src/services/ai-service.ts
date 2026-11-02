@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { aiRouterService } from './ai-router-service.js';
+import { groqService } from './groq-service.js';
 
 export const generateSnippet = async (req: Request, res: Response) => {
   try {
@@ -12,13 +12,13 @@ export const generateSnippet = async (req: Request, res: Response) => {
       });
     }
 
-    const code = await aiRouterService.generateCode(prompt, language);
+    const code = await groqService.generateCode(prompt, language);
 
     const titlePrompt = `Generate a short, descriptive title (max 5 words) for a code snippet that does this: ${prompt}. Return ONLY the title, nothing else.`;
-    const title = await aiRouterService.generateText(titlePrompt);
+    const title = await groqService.generateText(titlePrompt);
 
     const tagsPrompt = `Generate 3-5 relevant tags (single words, comma-separated) for a code snippet that does this: ${prompt}. Return ONLY the tags, nothing else. Example format: react, api, hooks`;
-    const tagsResponse = await aiRouterService.generateText(tagsPrompt);
+    const tagsResponse = await groqService.generateText(tagsPrompt);
     const tags = tagsResponse.split(',').map(t => t.trim()).filter(Boolean);
 
     res.json({
@@ -51,7 +51,7 @@ export const improveSnippet = async (req: Request, res: Response) => {
       });
     }
 
-    const improvedCode = await aiRouterService.optimizeCode(code, 'code');
+    const improvedCode = await groqService.optimizeCode(code, 'code');
 
     res.json({
       success: true,
@@ -79,7 +79,7 @@ export const explainCode = async (req: Request, res: Response) => {
       });
     }
 
-    const explanation = await aiRouterService.explainCode(code);
+    const explanation = await groqService.explainCode(code);
 
     res.json({
       success: true,
@@ -107,7 +107,7 @@ export const chatWithAI = async (req: Request, res: Response) => {
       });
     }
 
-    const response = await aiRouterService.chat(messages);
+    const response = await groqService.chat(messages);
 
     res.json({
       success: true,
@@ -126,7 +126,7 @@ export const chatWithAI = async (req: Request, res: Response) => {
 
 export const checkHealth = async (req: Request, res: Response) => {
   try {
-    const health = await aiRouterService.checkHealth();
+    const health = await groqService.checkHealth();
     res.json({
       success: true,
       data: {
