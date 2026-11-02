@@ -13,7 +13,7 @@ export class GroqService {
 
   constructor() {
     this.apiKey = (config.groqApiKey || process.env.GROQ_API_KEY || '').trim();
-    this.model = config.groqModel || process.env.GROQ_MODEL || 'llama-3.3-70b-versatile';
+    this.model = config.groqModel || process.env.GROQ_MODEL || 'openai/gpt-oss-120b';
     this.client = new Groq({ apiKey: this.apiKey || 'dummy-key' });
   }
 

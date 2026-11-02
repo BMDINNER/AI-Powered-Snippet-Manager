@@ -20,7 +20,7 @@ for (const envVar of requiredEnvVars) {
 }
 
 const groqApiKey = process.env.GROQ_API_KEY || '';
-const groqModel = process.env.GROQ_MODEL || 'llama-3.3-70b-versatile';
+const groqModel = process.env.GROQ_MODEL || 'openai/gpt-oss-120b';
 
 export const config = {
   port: parseInt(process.env.PORT || '3002'),
