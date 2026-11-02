@@ -20,12 +20,10 @@ services:
         sync: false
       - key: AUTH_SERVICE_URL
         sync: false
-      - key: AI_ROUTER_BASE_URL
+      - key: GROQ_API_KEY
         sync: false
-      - key: AI_ROUTER_API_KEY
-        sync: false
-      - key: AI_ROUTER_MODEL
-        value: openai/gpt-oss-120b
+      - key: GROQ_MODEL
+        value: llama-3.3-70b-versatile
       - key: CORS_ORIGIN
         sync: false
       - key: CLIENT_URL

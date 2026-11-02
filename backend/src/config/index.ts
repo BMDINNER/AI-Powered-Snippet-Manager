@@ -13,9 +13,11 @@ for (const envVar of requiredEnvVars) {
   }
 }
 
+const groqApiKey = process.env.GROQ_API_KEY || '';
+const groqModel = process.env.GROQ_MODEL || 'llama-3.3-70b-versatile';
 const aiRouterBaseUrl = process.env.AI_ROUTER_BASE_URL || 'http://localhost:4100/v1';
-const aiRouterApiKey = process.env.AI_ROUTER_API_KEY || '';
-const aiRouterModel = process.env.AI_ROUTER_MODEL || 'openai/gpt-oss-120b';
+const aiRouterApiKey = process.env.AI_ROUTER_API_KEY || groqApiKey;
+const aiRouterModel = process.env.AI_ROUTER_MODEL || groqModel;
 
 export const config = {
   port: parseInt(process.env.PORT || '3002'),
@@ -25,6 +27,8 @@ export const config = {
   authServiceUrl: process.env.AUTH_SERVICE_URL || 'https://auth-service-xo0o.onrender.com',
   projectId: process.env.PROJECT_ID || '',
   apiKey: process.env.API_KEY || '',
+  groqApiKey,
+  groqModel,
   aiRouterBaseUrl,
   aiRouterApiKey,
   aiRouterModel,

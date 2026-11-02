@@ -256,7 +256,7 @@ export const checkHealth = async (req: Request, res: Response) => {
       success: true,
       data: {
         healthy: health.available,
-        model: process.env.AI_ROUTER_MODEL || 'openai/gpt-oss-120b'
+        model: process.env.GROQ_MODEL || 'llama-3.3-70b-versatile'
       }
     });
   } catch (error: any) {
