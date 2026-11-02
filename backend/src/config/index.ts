@@ -1,8 +1,14 @@
 import dotenv from 'dotenv';
 import path from 'path';
 
-if (process.env.NODE_ENV !== 'production') {
-  dotenv.config({ path: path.resolve(process.cwd(), '.env') });
+const envCandidates = [
+  path.resolve(process.cwd(), '.env'),
+  path.resolve(process.cwd(), '..', '.env'),
+  path.resolve(process.cwd(), 'backend', '.env')
+];
+
+for (const envPath of envCandidates) {
+  dotenv.config({ path: envPath });
 }
 
 const requiredEnvVars = ['DATABASE_URL', 'PROJECT_ID', 'API_KEY', 'AUTH_SERVICE_URL'];

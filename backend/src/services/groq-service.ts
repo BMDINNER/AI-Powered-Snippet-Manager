@@ -136,6 +136,9 @@ export class GroqService {
         { temperature: 0.7, maxTokens: 4096 }
       );
     } catch (error: any) {
+      if (error?.message?.includes('GROQ_API_KEY is not configured')) {
+        throw error;
+      }
       console.warn('Groq request failed, using fallback code generation:', error?.message || error);
       return this.buildFallbackCode(prompt, language);
     }
@@ -154,6 +157,9 @@ export class GroqService {
         { temperature: 0.5, maxTokens: 250 }
       );
     } catch (error: any) {
+      if (error?.message?.includes('GROQ_API_KEY is not configured')) {
+        throw error;
+      }
       console.warn('Groq text generation failed, using fallback text:', error?.message || error);
       return this.buildFallbackText(prompt);
     }
@@ -174,6 +180,9 @@ export class GroqService {
         { temperature: 0.4, maxTokens: 4096 }
       );
     } catch (error: any) {
+      if (error?.message?.includes('GROQ_API_KEY is not configured')) {
+        throw error;
+      }
       console.warn('Groq optimization failed, using fallback code:', error?.message || error);
       return this.buildFallbackOptimizedCode(code, language);
     }
@@ -194,6 +203,9 @@ export class GroqService {
         { temperature: 0.4, maxTokens: 2048 }
       );
     } catch (error: any) {
+      if (error?.message?.includes('GROQ_API_KEY is not configured')) {
+        throw error;
+      }
       console.warn('Groq explanation failed, using fallback explanation:', error?.message || error);
       return this.buildFallbackExplanation(code);
     }
@@ -203,6 +215,9 @@ export class GroqService {
     try {
       return await this.callGroq(messages, { temperature: 0.7, maxTokens: 2048 });
     } catch (error: any) {
+      if (error?.message?.includes('GROQ_API_KEY is not configured')) {
+        throw error;
+      }
       console.warn('Groq chat failed:', error?.message || error);
       return 'The Groq AI service is unavailable right now. Please try again in a few moments.';
     }
