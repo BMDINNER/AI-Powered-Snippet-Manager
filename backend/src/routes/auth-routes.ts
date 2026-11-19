@@ -1,87 +1,52 @@
 import { Router } from 'express';
-import { AuthController } from '../controllers/auth-controller.js';
-import { authenticate } from '../middleware/auth.js';
-import { validateProjectApiKey } from '../middleware/project-auth.js';
+import * as authController from '../controllers/auth-controller.js';
+import { csrfProtection } from '../middleware/csrf.js';
 import rateLimit from 'express-rate-limit';
-import { asyncHandler } from '../utils/async-handler.js';
 
 const router = Router();
-const authController = new AuthController();
-
-let isServiceReady = false;
 
 const loginLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 dakika
-    max: 20,
-    message: 'Too many login attempts, please try again later',
-    skipSuccessfulRequests: true,
-    standardHeaders: true,
-    legacyHeaders: false,
-    skip: (req) => {
-    if (!isServiceReady) return true;
-    return false;
-    }
+  max: 20,
+  message: { success: false, message: 'Too many login attempts, please try again later' },
+  skipSuccessfulRequests: true,
+  standardHeaders: true,
+  legacyHeaders: false,
 });
 
 const registerLimiter = rateLimit({
   windowMs: 60 * 60 * 1000, // 1 saat
-    max: 10,
-    message: 'Too many registration attempts, please try again later',
-    skip: (req) => {
-    if (!isServiceReady) return true;
-    return false;
-    }
+  max: 10,
+  message: { success: false, message: 'Too many registration attempts, please try again later' },
 });
 
 
 const sensitiveActionLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 dakika
-    max: 5,
-    message: 'Too many attempts for this action, please try again later',
-    skip: (req) => {
-    if (!isServiceReady) return true;
-    return false;
-    }
+  windowMs: 15 * 60 * 1000, 
+  max: 5,
+  message: { success: false, message: 'Too many attempts for this action, please try again later' },
 });
 
 
 const generalLimiter = rateLimit({
-  windowMs: 60 * 1000, // 1 dakika
-    max: 60,
-    message: 'Too many requests, please slow down',
-    skip: (req) => {
-    if (!isServiceReady) return true;
-    return false;
-    }
+  windowMs: 60 * 1000, 
+  max: 60,
+  message: { success: false, message: 'Too many requests, please slow down' },
 });
-
 
 router.use(generalLimiter);
 
-export const enableRateLimiting = () => {
-    isServiceReady = true;
-    console.log('Rate limiting enabled');
-};
+router.get('/csrf-token', authController.getCsrfToken);
 
+router.post('/login', loginLimiter, authController.login);
+router.post('/register', registerLimiter, authController.register);
 
-// Public auth route'ları
-router.post('/register', registerLimiter, asyncHandler(authController.register.bind(authController)));
-router.post('/login', loginLimiter, asyncHandler(authController.login.bind(authController)));
-router.post('/refresh', asyncHandler(authController.refreshToken.bind(authController))); // refresh genelde limiter gerektirmez ama generalLimiter altında
+router.post('/refresh', csrfProtection, authController.refreshToken);
+router.post('/logout', csrfProtection, authController.logout);
 
-// Korumalı auth route'ları
-router.post('/logout', authenticate, asyncHandler(authController.logout.bind(authController)));
-router.get('/verify', authenticate, asyncHandler(authController.verify.bind(authController)));
+router.get('/verify', authController.verifyToken);
 
-// Hassas işlemler (şifre değiştirme, e-posta güncelleme)
-router.put('/email', authenticate, sensitiveActionLimiter, asyncHandler(authController.updateEmail.bind(authController)));
-router.put('/change-password', authenticate, sensitiveActionLimiter, asyncHandler(authController.changePassword.bind(authController)));
-
-// Proje oluşturma (korumalı)
-router.post('/projects', authenticate, asyncHandler(authController.createProject.bind(authController)));
-
-// Proje kapsamlı auth route'ları (API key doğrulamalı)
-router.post('/project/register', validateProjectApiKey, registerLimiter, asyncHandler(authController.register.bind(authController)));
-router.post('/project/login', validateProjectApiKey, loginLimiter, asyncHandler(authController.login.bind(authController)));
+router.put('/email', csrfProtection, sensitiveActionLimiter, authController.updateEmail);
+router.put('/change-password', csrfProtection, sensitiveActionLimiter, authController.changePassword);
 
 export default router;
