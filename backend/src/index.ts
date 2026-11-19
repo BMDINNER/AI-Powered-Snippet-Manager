@@ -129,7 +129,7 @@ app.use(
     res: express.Response,
     next: express.NextFunction
   ) => {
-    console.error(`[Error] ${req.method} ${req.path}:`, err);
+    console.error('[Error] %s %s:', req.method, req.path, err);
 
     const statusCode = err.statusCode || 500;
     const message = config.nodeEnv === 'development' 
