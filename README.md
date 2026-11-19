@@ -10,7 +10,7 @@ An AI-powered code snippet manager built with React, Express, Prisma, and Postgr
 
 ## Flowchart of the project
 
-_Request flow: frontend → backend → auth service, with the central AI Router handling AI requests._
+_Request flow: frontend → backend → auth service._
 
 ---
 
