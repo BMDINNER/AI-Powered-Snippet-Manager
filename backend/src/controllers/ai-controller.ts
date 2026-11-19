@@ -1,0 +1,271 @@
+import { Request, Response } from 'express';
+import { groqService } from '../services/groq-service.js';
+
+const stripCodeBlock = (code: string): string => {
+  if (!code) return '';
+  
+  let cleaned = code.trim();
+  
+  const codeBlockMatch = cleaned.match(/```(?:\w+)?\n([\s\S]*?)```/);
+  if (codeBlockMatch && codeBlockMatch[1]) {
+    cleaned = codeBlockMatch[1].trim();
+  }
+  
+  const inlineCodeMatch = cleaned.match(/`([^`]+)`/);
+  if (inlineCodeMatch && inlineCodeMatch[1] && !cleaned.includes('\n')) {
+    cleaned = inlineCodeMatch[1].trim();
+  }
+  
+  return cleaned;
+};
+
+const detectLanguage = (code: string): string => {
+  if (code.includes('function') || code.includes('var') || code.includes('const') || code.includes('let')) {
+    return 'javascript';
+  }
+  if (code.includes('def ') && code.includes(':')) {
+    return 'python';
+  }
+  if (code.includes('public class') || code.includes('System.out.println')) {
+    return 'java';
+  }
+  if (code.includes('<!DOCTYPE html') || code.includes('<html>')) {
+    return 'html';
+  }
+  if (code.includes('SELECT') || code.includes('INSERT INTO')) {
+    return 'sql';
+  }
+  return 'text';
+};
+
+export const generateSnippet = async (req: Request, res: Response) => {
+  try {
+    const { prompt, language } = req.body;
+
+    if (!prompt || !language) {
+      return res.status(400).json({
+        success: false,
+        message: 'Prompt and language are required'
+      });
+    }
+
+    const code = await groqService.generateCode(prompt, language);
+    const cleanCode = stripCodeBlock(code);
+
+    if (!cleanCode || cleanCode.length === 0) {
+      return res.status(500).json({
+        success: false,
+        message: 'AI returned empty code. Please try again with a different prompt.'
+      });
+    }
+
+    const titlePrompt = `Generate a short, descriptive title (max 5 words) for a code snippet that does this: ${prompt}. Return ONLY the title, nothing else.`;
+    let title = await groqService.generateText(titlePrompt);
+    title = title.replace(/^["']|["']$/g, '').trim();
+
+    if (!title || title.length === 0) {
+      title = prompt.split(' ').slice(0, 5).join(' ') + '...';
+    }
+
+    const tagsPrompt = `Generate 3-5 relevant tags (single words, comma-separated) for a code snippet that does this: ${prompt}. Return ONLY the tags, nothing else. Example format: react, api, hooks`;
+    const tagsResponse = await groqService.generateText(tagsPrompt);
+    const tags = tagsResponse.split(',').map(t => t.trim().replace(/^["']|["']$/g, '')).filter(Boolean);
+
+    const markdownCode = `\`\`\`${language}\n${cleanCode}\n\`\`\``;
+
+    res.json({
+      success: true,
+      data: {
+        code: markdownCode,
+        language: language,
+        title: title,
+        description: prompt,
+        tags: tags.length > 0 ? tags : ['code', 'snippet']
+      }
+    });
+  } catch (error: any) {
+    console.error('Generate snippet error:', error);
+    
+    if (error.message?.includes('rate limit') || error.message?.includes('Rate limit')) {
+      return res.status(429).json({
+        success: false,
+        message: 'AI rate limit reached. Please wait a few minutes and try again.'
+      });
+    }
+    
+    res.status(500).json({
+      success: false,
+      message: error.message || 'Failed to generate snippet'
+    });
+  }
+};
+
+export const improveSnippet = async (req: Request, res: Response) => {
+  try {
+    const { code, instructions, language } = req.body;
+
+    if (!code) {
+      return res.status(400).json({
+        success: false,
+        message: 'Code is required'
+      });
+    }
+
+    if (!instructions) {
+      return res.status(400).json({
+        success: false,
+        message: 'Instructions are required'
+      });
+    }
+
+    const detectedLanguage = language || detectLanguage(code);
+    
+    const cleanCode = stripCodeBlock(code);
+    
+    if (!cleanCode || cleanCode.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'No valid code to optimize'
+      });
+    }
+
+    const improvedCode = await groqService.optimizeCode(cleanCode, detectedLanguage);
+    const finalCode = stripCodeBlock(improvedCode);
+
+    if (!finalCode || finalCode.length === 0) {
+      return res.status(500).json({
+        success: false,
+        message: 'AI returned empty optimized code. Please try again.'
+      });
+    }
+    res.json({
+      success: true,
+      data: {
+        optimizedCode: finalCode
+      }
+    });
+  } catch (error: any) {
+    console.error('Improve snippet error:', error);
+    
+    if (error.message?.includes('rate limit') || error.message?.includes('Rate limit')) {
+      return res.status(429).json({
+        success: false,
+        message: 'AI rate limit reached. Please wait a few minutes and try again.'
+      });
+    }
+    
+    res.status(500).json({
+      success: false,
+      message: error.message || 'Failed to improve snippet'
+    });
+  }
+};
+
+export const explainCode = async (req: Request, res: Response) => {
+  try {
+    const { code } = req.body;
+
+    if (!code) {
+      return res.status(400).json({
+        success: false,
+        message: 'Code is required'
+      });
+    }
+
+    const cleanCode = stripCodeBlock(code);
+    
+    if (!cleanCode || cleanCode.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'No valid code to explain'
+      });
+    }
+
+    const explanation = await groqService.explainCode(cleanCode);
+
+    if (!explanation || explanation.length === 0) {
+      return res.status(500).json({
+        success: false,
+        message: 'AI returned empty explanation. Please try again.'
+      });
+    }
+
+    res.json({
+      success: true,
+      data: {
+        explanation: explanation
+      }
+    });
+  } catch (error: any) {
+    console.error('Explain code error:', error);
+    
+    if (error.message?.includes('rate limit') || error.message?.includes('Rate limit')) {
+      return res.status(429).json({
+        success: false,
+        message: 'AI rate limit reached. Please wait a few minutes and try again.'
+      });
+    }
+    
+    res.status(500).json({
+      success: false,
+      message: error.message || 'Failed to explain code'
+    });
+  }
+};
+
+export const chatWithAI = async (req: Request, res: Response) => {
+  try {
+    const { messages } = req.body;
+
+    if (!messages || !Array.isArray(messages) || messages.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'Messages are required'
+      });
+    }
+
+    const response = await groqService.chat(messages);
+
+    res.json({
+      success: true,
+      data: {
+        response: response
+      }
+    });
+  } catch (error: any) {
+    console.error('Chat error:', error);
+    
+    if (error.message?.includes('rate limit') || error.message?.includes('Rate limit')) {
+      return res.status(429).json({
+        success: false,
+        message: 'AI rate limit reached. Please wait a few minutes and try again.'
+      });
+    }
+    
+    res.status(500).json({
+      success: false,
+      message: error.message || 'Failed to chat with AI'
+    });
+  }
+};
+
+export const checkHealth = async (req: Request, res: Response) => {
+  try {
+    const health = await groqService.checkHealth();
+    res.json({
+      success: true,
+      data: {
+        healthy: health.available,
+        model: process.env.GROQ_MODEL || 'openai/gpt-oss-120b'
+      }
+    });
+  } catch (error: any) {
+    res.json({
+      success: true,
+      data: {
+        healthy: false,
+        error: error.message
+      }
+    });
+  }
+};

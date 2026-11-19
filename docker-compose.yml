@@ -1,0 +1,58 @@
+services:
+  postgres_snippet:
+    image: postgres:15-alpine
+    container_name: snippet_postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: snippet_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_snippet_data:/var/lib/postgresql/data
+    networks:
+      - platform_network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: snippet_backend
+    ports:
+      - "3002:3002"
+    env_file:
+      - ./backend/.env
+    depends_on:
+      postgres_snippet:
+        condition: service_healthy
+    networks:
+      - platform_network
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        - VITE_API_URL=http://backend:3002
+        - VITE_AUTH_URL=http://backend:3002/auth
+    container_name: snippet_frontend
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
+    networks:
+      - platform_network
+    restart: unless-stopped
+
+volumes:
+  postgres_snippet_data:
+
+networks:
+  platform_network:
+    external: true
