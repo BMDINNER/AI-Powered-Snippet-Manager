@@ -38,11 +38,7 @@
     "@vitejs/plugin-react": "^6.0.2",
     "autoprefixer": "^10.4.16",
     "postcss": "^8.4.32",
-<<<<<<< HEAD
-    "tailwindcss": "^4.0.0",
-=======
     "tailwindcss": "^4.3.5",
->>>>>>> 43fdbf10f1709d4c80d989fcef5af038c227d2f9
     "typescript": "^7.0.2",
     "vite": "^8.0.16"
   }
