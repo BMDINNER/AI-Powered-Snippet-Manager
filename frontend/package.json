@@ -23,7 +23,7 @@
     "react-hot-toast": "^2.4.1",
     "react-markdown": "^10.1.0",
     "react-router": "^8.5.1",
-    "react-router-dom": "^7.18.0",
+    "react-router-dom": "^7.18.6",
     "react-syntax-highlighter": "^16.1.2",
     "rehype-highlight": "^7.0.2",
     "remark-gfm": "^4.0.1",
